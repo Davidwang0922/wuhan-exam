@@ -1,0 +1,1179 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="format-detection" content="telephone=no">
+<meta name="format-detection" content="email=no">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="theme-color" content="#1a56db">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="application-name" content="外初机考训练">
+<meta name="apple-mobile-web-app-title" content="外初机考训练">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>武汉外初 · 人机对话模拟训练</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --blue:#1a56db; --blue-light:#e8f0fe; --blue-dark:#0f3b99;
+  --green:#0d9488; --green-light:#e6f7f5; --green-dark:#0b6e66;
+  --orange:#ea580c; --orange-light:#fff3eb; --orange-dark:#b8450b;
+  --bg:#f5f7fa; --card:#fff; --text:#1e293b; --text-secondary:#64748b;
+  --border:#e2e8f0; --danger:#dc2626; --success:#16a34a; --warning:#f59e0b;
+  --radius:16px; --radius-sm:10px;
+  --shadow:0 4px 24px rgba(0,0,0,.08);
+  --shadow-sm:0 2px 8px rgba(0,0,0,.06);
+}
+html,body{
+  height:100%; width:100%;
+  overflow:hidden;
+  position:fixed; top:0; left:0; right:0; bottom:0;
+}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei","Helvetica Neue",Arial,sans-serif;
+  background:var(--bg); color:var(--text);
+  -webkit-tap-highlight-color:transparent;
+  -webkit-user-select:none; user-select:none;
+  -webkit-touch-callout:none;
+  touch-action:manipulation;
+}
+#app{
+  width:100%; height:100%;
+  max-width:1200px; margin:0 auto;
+  display:flex; flex-direction:column; overflow:hidden;
+  background:var(--bg);
+}
+.topbar{
+  display:flex; align-items:center; padding:8px 12px; gap:8px;
+  background:var(--card); border-bottom:1px solid var(--border);
+  flex-shrink:0; min-height:44px;
+}
+.topbar .back-btn{
+  display:none; flex-shrink:0;
+  background:none; border:none; outline:none;
+  font-size:16px; color:var(--blue); font-weight:600;
+  padding:8px 6px; border-radius:6px;
+  min-width:44px; min-height:36px;
+  cursor:pointer; line-height:1;
+}
+.topbar .back-btn.visible{display:inline-block}
+.topbar .back-btn:active{background:#d0d8e8}
+.topbar .logo{
+  font-size:16px; font-weight:700; color:var(--blue);
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  flex:1; min-width:0;
+}
+.topbar .progress-info{
+  font-size:12px; color:var(--text-secondary);
+  white-space:nowrap; flex-shrink:0;
+}
+.main{
+  flex:1; overflow-y:auto;
+  padding:12px 10px;
+  -webkit-overflow-scrolling:touch;
+}
+.home-screen{
+  display:flex; flex-direction:column; gap:16px;
+  max-width:800px; margin:0 auto; padding-top:4px;
+}
+.home-screen h1{
+  font-size:22px; text-align:center; color:var(--text); line-height:1.4;
+}
+.home-screen h1 small{
+  display:block; font-size:14px; color:var(--text-secondary);
+  font-weight:400; margin-top:4px;
+}
+.cards{display:flex; flex-wrap:wrap; gap:12px}
+.cards>*{flex:1 1 0; min-width:150px}
+.card{
+  background:var(--card); border-radius:var(--radius); padding:20px 16px;
+  box-shadow:var(--shadow); cursor:pointer;
+  border:2px solid transparent; text-align:center;
+  display:flex; flex-direction:column; align-items:center; gap:8px;
+  justify-content:center; min-height:120px;
+  -webkit-tap-highlight-color:transparent;
+}
+.card:active{transform:scale(.97); -webkit-transform:scale(.97)}
+.card .icon{font-size:40px; line-height:1}
+.card h2{font-size:17px; font-weight:700}
+.card p{font-size:12px; color:var(--text-secondary); line-height:1.5}
+.card.mock{border-color:var(--blue)}
+.card.mock h2{color:var(--blue)}
+.card.mock .icon{color:var(--blue)}
+.card.past{border-color:var(--green)}
+.card.past h2{color:var(--green)}
+.card.past .icon{color:var(--green)}
+.rules-box{
+  background:var(--card); border-radius:var(--radius); padding:14px 16px;
+  box-shadow:var(--shadow-sm); border-left:4px solid var(--warning);
+}
+.rules-box h3{font-size:15px; color:var(--warning); margin-bottom:8px}
+.rules-box ul{list-style:none; font-size:13px; color:var(--text-secondary); line-height:1.9}
+.rules-box ul li{padding-left:0}
+.rules-box ul li::before{content:"⚠️ "; color:var(--warning)}
+.exam-screen{display:flex; flex-direction:column; gap:12px; max-width:900px; margin:0 auto; min-height:100%}
+.exam-header{
+  display:flex; align-items:center; gap:8px; flex-wrap:wrap;
+  background:var(--card); border-radius:var(--radius); padding:10px 12px;
+  box-shadow:var(--shadow-sm);
+}
+.exam-header .subject-badge{
+  padding:4px 10px; border-radius:16px; font-weight:700;
+  font-size:12px; color:#fff; white-space:nowrap;
+}
+.exam-header .subject-badge.english{background:var(--blue)}
+.exam-header .subject-badge.chinese{background:var(--green)}
+.exam-header .subject-badge.math{background:var(--orange)}
+.exam-header .q-counter{font-weight:600; font-size:15px; white-space:nowrap}
+.exam-header .timer-wrap{flex:1; display:flex; align-items:center; gap:6px; min-width:100px}
+.timer-bar{flex:1; height:8px; background:#e5e7eb; border-radius:4px; overflow:hidden}
+.timer-bar-fill{height:100%; border-radius:4px; transition:width 1s linear,background-color .3s}
+.timer-bar-fill.normal{background:var(--success)}
+.timer-bar-fill.warning{background:var(--warning)}
+.timer-bar-fill.danger{background:var(--danger)}
+.timer-text{font-weight:700; font-size:18px; min-width:38px; text-align:center}
+.timer-text.warning{color:var(--warning)}
+.timer-text.danger{color:var(--danger)}
+.exam-question{
+  background:var(--card); border-radius:var(--radius); padding:16px 14px;
+  box-shadow:var(--shadow-sm); flex:1;
+}
+.exam-question .q-num{font-size:12px; color:var(--text-secondary); margin-bottom:6px}
+.exam-question .q-text{
+  font-size:16px; line-height:1.7; margin-bottom:16px; font-weight:500;
+  word-break:break-word;
+}
+.exam-question .multi-tag{
+  display:inline-block; background:var(--orange); color:#fff;
+  padding:2px 6px; border-radius:3px; font-size:11px; margin-right:5px; vertical-align:middle;
+}
+.exam-options{display:flex; flex-direction:column; gap:8px}
+.exam-option{
+  display:flex; align-items:flex-start; gap:10px; padding:12px 14px;
+  background:var(--bg); border-radius:var(--radius-sm); cursor:pointer;
+  border:2px solid transparent; font-size:15px; line-height:1.5;
+  min-height:44px;
+  -webkit-tap-highlight-color:transparent;
+  -webkit-user-select:none; user-select:none;
+}
+.exam-option:active{transform:scale(.985); -webkit-transform:scale(.985)}
+.exam-option.selected{background:var(--blue-light); border-color:var(--blue); font-weight:600}
+.exam-option .opt-letter{
+  width:28px; height:28px; min-width:28px; border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+  font-weight:700; font-size:13px; background:#e5e7eb; flex-shrink:0;
+}
+.exam-option.selected .opt-letter{background:var(--blue); color:#fff}
+.exam-option.multi-selected{background:var(--orange-light); border-color:var(--orange)}
+.exam-option.multi-selected .opt-letter{background:var(--orange); color:#fff}
+.exam-submit{display:flex; justify-content:center; padding:6px 0 12px}
+.exam-submit button{
+  padding:12px 40px; font-size:17px; font-weight:700;
+  border:none; border-radius:24px; cursor:pointer; color:#fff;
+  background:var(--blue); min-height:44px; min-width:140px; outline:none;
+}
+.exam-submit button:active{transform:scale(.96); -webkit-transform:scale(.96); background:var(--blue-dark)}
+.results-screen{max-width:700px; margin:0 auto; display:flex; flex-direction:column; gap:16px}
+.results-header{text-align:center; padding:12px 0}
+.results-header h1{font-size:24px; margin-bottom:8px}
+.results-header .score-big{font-size:56px; font-weight:900; color:var(--blue); line-height:1.1}
+.results-header .score-label{font-size:14px; color:var(--text-secondary); margin-top:4px}
+.score-grid{display:flex; flex-wrap:wrap; gap:10px}
+.score-grid>*{flex:1 1 0; min-width:100px}
+.score-card{
+  background:var(--card); border-radius:var(--radius); padding:14px 8px;
+  box-shadow:var(--shadow-sm); text-align:center;
+}
+.score-card .subj{font-size:12px; font-weight:700; margin-bottom:4px}
+.score-card .pts{font-size:20px; font-weight:900}
+.score-card .rate{font-size:11px; color:var(--text-secondary)}
+.score-card.english .subj,.score-card.english .pts{color:var(--blue)}
+.score-card.chinese .subj,.score-card.chinese .pts{color:var(--green)}
+.score-card.math .subj,.score-card.math .pts{color:var(--orange)}
+.results-actions{display:flex; gap:8px; justify-content:center; flex-wrap:wrap}
+.results-actions button{
+  padding:10px 18px; font-size:14px; font-weight:700;
+  border:2px solid var(--blue); border-radius:24px; cursor:pointer;
+  background:#fff; color:var(--blue); min-height:42px; outline:none;
+}
+.results-actions button:active{background:var(--blue); color:#fff}
+.results-actions button.primary{background:var(--blue); color:#fff; border-color:var(--blue)}
+.results-actions button.primary:active{background:var(--blue-dark)}
+.answer-review{margin-top:8px}
+.answer-review h3{font-size:17px; margin-bottom:12px; text-align:center}
+.review-item{
+  background:var(--card); border-radius:var(--radius-sm); padding:12px;
+  margin-bottom:8px; box-shadow:var(--shadow-sm);
+  font-size:14px; line-height:1.5;
+}
+.review-item .ri-q{font-weight:600; margin-bottom:4px}
+.review-item .ri-a{color:var(--success); font-weight:600}
+.review-item .ri-e{color:var(--text-secondary); font-size:12px; margin-top:2px}
+.review-item.wrong{border-left:4px solid var(--danger)}
+.review-item.wrong .ri-a{color:var(--danger)}
+.review-item .ri-user{color:var(--danger); font-size:12px}
+.practice-screen{max-width:800px; margin:0 auto; display:flex; flex-direction:column; gap:14px}
+.practice-screen h2{font-size:19px}
+.year-list{display:flex; flex-direction:column; gap:8px}
+.year-item{
+  background:var(--card); border-radius:var(--radius); padding:14px 16px;
+  box-shadow:var(--shadow-sm); cursor:pointer; border-left:5px solid var(--green);
+  display:flex; justify-content:space-between; align-items:center;
+  gap:10px; min-height:50px;
+  -webkit-tap-highlight-color:transparent;
+}
+.year-item:active{transform:scale(.98); -webkit-transform:scale(.98); background:var(--green-light)}
+.year-item .yr{font-size:19px; font-weight:700; color:var(--green); white-space:nowrap}
+.year-item .yr-desc{font-size:12px; color:var(--text-secondary); flex:1; text-align:right; line-height:1.4}
+.practice-detail{display:flex; flex-direction:column; gap:12px}
+.practice-detail .pd-header{text-align:center}
+.practice-detail .pd-header h2{font-size:19px; color:var(--green)}
+.practice-detail .pd-header p{font-size:13px; color:var(--text-secondary); margin-top:4px}
+.practice-q{background:var(--card); border-radius:var(--radius); padding:14px 16px; box-shadow:var(--shadow-sm)}
+.practice-q .pq-num{font-size:12px; color:var(--text-secondary); margin-bottom:4px}
+.practice-q .pq-text{font-size:14px; line-height:1.7; margin-bottom:8px}
+.practice-q .pq-options{font-size:13px; line-height:1.8; color:var(--text-secondary); margin-bottom:8px}
+.practice-q .pq-answer{display:none; background:var(--green-light); padding:8px 12px; border-radius:8px; font-size:13px; color:var(--green-dark)}
+.practice-q .pq-answer.show{display:block}
+.show-answer-btn{
+  background:none; border:1px solid var(--green); color:var(--green);
+  padding:7px 14px; border-radius:18px; cursor:pointer;
+  font-size:12px; margin-top:4px; min-height:36px; outline:none;
+}
+.show-answer-btn:active{background:var(--green); color:#fff}
+.empty-state{text-align:center; padding:40px 12px; color:var(--text-secondary)}
+.empty-state .icon{font-size:48px; margin-bottom:12px}
+.main::-webkit-scrollbar{width:4px}
+.main::-webkit-scrollbar-track{background:transparent}
+.main::-webkit-scrollbar-thumb{background:#cbd5e1; border-radius:2px}
+@keyframes fadeIn{
+  from{opacity:0; transform:translateY(10px); -webkit-transform:translateY(10px)}
+  to{opacity:1; transform:translateY(0); -webkit-transform:translateY(0)}
+}
+.fade-in{animation:fadeIn .25s ease-out; -webkit-animation:fadeIn .25s ease-out}
+@keyframes pulse{
+  0%,100%{transform:scale(1); -webkit-transform:scale(1)}
+  50%{transform:scale(1.05); -webkit-transform:scale(1.05)}
+}
+.pulse{animation:pulse .6s ease-in-out; -webkit-animation:pulse .6s ease-in-out}
+@keyframes flashRed{
+  0%,100%{background:var(--card)}
+  50%{background:#fee2e2}
+}
+.flash-red{animation:flashRed .4s ease-in-out 2; -webkit-animation:flashRed .4s ease-in-out 2}
+
+/* 安装提示 */
+.install-banner{
+  display:none;
+  background:var(--blue); color:#fff; padding:12px 16px;
+  text-align:center; font-size:14px; line-height:1.5;
+  flex-shrink:0; cursor:pointer;
+}
+.install-banner.show{display:block}
+.install-banner:active{background:var(--blue-dark)}
+
+@media(min-width:600px){
+  .topbar{padding:10px 16px}
+  .main{padding:20px 16px}
+  .home-screen{gap:20px; padding-top:12px}
+  .home-screen h1{font-size:26px}
+  .home-screen h1 small{font-size:16px}
+  .card{padding:28px 20px; min-height:140px}
+  .card .icon{font-size:48px}
+  .card h2{font-size:20px}
+  .card p{font-size:14px}
+  .card:hover{border-color:var(--blue); transform:translateY(-2px); -webkit-transform:translateY(-2px); box-shadow:0 8px 32px rgba(0,0,0,.12)}
+  .card.past:hover{border-color:var(--green)}
+  .exam-header{padding:14px 18px; gap:12px}
+  .exam-header .subject-badge{font-size:14px; padding:5px 14px}
+  .exam-header .q-counter{font-size:17px}
+  .exam-question{padding:24px 20px}
+  .exam-question .q-text{font-size:18px}
+  .exam-option{font-size:16px; padding:15px 18px}
+  .exam-option:hover{background:#e8f0fe; border-color:var(--blue-light)}
+  .exam-submit button{font-size:18px; padding:14px 52px}
+  .year-item:hover{background:var(--green-light); transform:translateX(4px); -webkit-transform:translateX(4px)}
+  .results-actions button:hover{background:var(--blue); color:#fff}
+  .results-actions button.primary:hover{background:var(--blue-dark)}
+  .show-answer-btn:hover{background:var(--green); color:#fff}
+  .results-header h1{font-size:30px}
+  .results-header .score-big{font-size:68px}
+  .practice-screen h2{font-size:22px}
+}
+@media(min-width:1024px){
+  .main{padding:28px 32px}
+  .topbar .logo{font-size:18px}
+  .home-screen h1{font-size:30px}
+}
+</style>
+</head>
+<body>
+<div id="app">
+  <!-- 安装提示横幅 -->
+  <div class="install-banner" id="installBanner" onclick="installApp()">
+    📲 点击此处安装到桌面，像APP一样使用
+  </div>
+  <div class="topbar" id="topbar">
+    <button class="back-btn" id="backBtn">← 返回</button>
+    <span class="logo">📋 武汉外初 · 人机对话模拟训练</span>
+    <span class="progress-info" id="progressInfo"></span>
+  </div>
+  <div class="main" id="mainContent"></div>
+</div>
+
+<script>
+// ==================== PWA 安装 ====================
+var deferredPrompt = null;
+
+window.addEventListener('beforeinstallprompt', function(e){
+  e.preventDefault();
+  deferredPrompt = e;
+  // 显示安装横幅
+  document.getElementById('installBanner').classList.add('show');
+});
+
+// 如果已安装（standalone模式），隐藏安装横幅
+if(window.matchMedia('(display-mode: standalone)').matches ||
+   navigator.standalone){
+  // 已安装，无需提示
+}
+
+function installApp(){
+  if(deferredPrompt){
+    deferredPrompt.prompt();
+    deferredPrompt.userChoice.then(function(result){
+      if(result.outcome === 'accepted'){
+        document.getElementById('installBanner').classList.remove('show');
+      }
+      deferredPrompt = null;
+    });
+  } else {
+    // 手动安装提示
+    var isIOS = /iphone|ipad|ipod/.test(navigator.userAgent.toLowerCase());
+    if(isIOS){
+      alert('iOS安装方法：\n1. 点击浏览器底部"分享"按钮\n2. 滑动找到"添加到主屏幕"\n3. 点击"添加"即可');
+    } else {
+      alert('安装方法：\n1. 点击浏览器右上角菜单（⋮）\n2. 选择"添加到主屏幕"或"安装应用"\n3. 确认安装即可');
+    }
+  }
+}
+
+// 注册 Service Worker
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('sw.js').then(function(){
+    console.log('SW registered');
+  }).catch(function(err){
+    console.log('SW registration failed:', err);
+  });
+}
+
+// ==================== 移动端兼容修复 ====================
+(function(){
+  function fixViewport(){
+    var h = window.innerHeight;
+    document.body.style.height = h + 'px';
+    document.getElementById('app').style.height = h + 'px';
+  }
+  fixViewport();
+  var resizeTimer = null;
+  window.addEventListener('orientationchange', function(){
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(fixViewport, 300);
+  });
+  window.addEventListener('resize', function(){
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(fixViewport, 200);
+  });
+})();
+
+// ==================== DOM工具 ====================
+function $(s){ return document.querySelector(s); }
+
+var main = document.getElementById('mainContent');
+var backBtn = document.getElementById('backBtn');
+var progressInfo = document.getElementById('progressInfo');
+
+// ==================== 应用状态 ====================
+var appState = {
+  screen: 'home',
+  exam: {
+    sections: null, sectionIndex: 0, currentIndex: 0,
+    userAnswers: {}, completed: false, timedOut: false,
+    timerInterval: null, selectedOptions: null
+  },
+  _reviewData: null
+};
+
+var navStack = [];
+
+// ==================== 导航系统 ====================
+function navigate(screen, data){
+  navStack.push({screen: appState.screen, data: {}});
+  appState.screen = screen;
+  if(appState.exam.timerInterval){
+    clearInterval(appState.exam.timerInterval);
+    appState.exam.timerInterval = null;
+  }
+  renderScreen(screen, data || {});
+  updateBackBtn();
+}
+
+function goBack(){
+  if(appState.exam.timerInterval){
+    clearInterval(appState.exam.timerInterval);
+    appState.exam.timerInterval = null;
+  }
+  if(navStack.length === 0){
+    appState.screen = 'home';
+    renderScreen('home', {});
+    updateBackBtn();
+    return;
+  }
+  var prev = navStack.pop();
+  appState.screen = prev.screen;
+  renderScreen(prev.screen, prev.data || {});
+  updateBackBtn();
+}
+
+function updateBackBtn(){
+  if(appState.screen === 'home'){
+    backBtn.classList.remove('visible');
+    backBtn.style.display = 'none';
+  } else {
+    backBtn.classList.add('visible');
+    backBtn.style.display = 'inline-block';
+  }
+}
+
+function renderScreen(screen, data){
+  main.className = 'main fade-in';
+  progressInfo.textContent = '';
+  switch(screen){
+    case 'home': renderHome(); break;
+    case 'exam': renderExam(); break;
+    case 'results': renderResults(); break;
+    case 'review': renderReview(); break;
+    case 'practiceList': renderPracticeList(); break;
+    case 'practiceDetail': renderPracticeDetail(data.yearIndex); break;
+  }
+  main.scrollTop = 0;
+}
+
+// ==================== 首页 ====================
+function renderHome(){
+  main.innerHTML = '<div class="home-screen">' +
+    '<h1>武汉外初 · 人机对话模拟训练<small>为汪子堯加油 💪</small></h1>' +
+    '<div class="cards">' +
+      '<div class="card mock" onclick="startExam()">' +
+        '<span class="icon">📝</span>' +
+        '<h2>2026年模拟考察卷</h2>' +
+        '<p>完整70题 · 英语→语文→数学<br>单题倒计时 · 真实机考体验</p>' +
+      '</div>' +
+      '<div class="card past" onclick="showPracticeList()">' +
+        '<span class="icon">📚</span>' +
+        '<h2>历年真题汇编</h2>' +
+        '<p>2015—2025年真题回忆版<br>按年份浏览 · 查看答案</p>' +
+      '</div>' +
+    '</div>' +
+    '<div class="rules-box">' +
+      '<h3>📋 机考核心规则</h3>' +
+      '<ul>' +
+        '<li>单题限时：每题15秒—90秒不等，时间到自动跳转，不可回翻</li>' +
+        '<li>无纸笔：严禁携带纸笔、计算器，数学全靠心算</li>' +
+        '<li>顺序固定：英语 → 语文 → 数学</li>' +
+        '<li>满分150分，按成绩择优录取</li>' +
+      '</ul>' +
+    '</div>' +
+  '</div>';
+}
+
+// ==================== 考试引擎 ====================
+function startExam(){
+  var sections = [
+    {name:'英语',cls:'english',timePerQ:35,questions:MOCK_ENGLISH},
+    {name:'语文',cls:'chinese',timePerQ:40,questions:MOCK_CHINESE},
+    {name:'数学',cls:'math',timePerQ:50,questions:MOCK_MATH}
+  ];
+  appState.exam = {
+    sections:sections, sectionIndex:0, currentIndex:0,
+    userAnswers:{}, completed:false, timedOut:false,
+    timerInterval:null, selectedOptions:null
+  };
+  navStack = [];
+  appState.screen = 'exam';
+  updateBackBtn();
+  renderExam();
+}
+
+function getCurrentQ(){
+  var ex = appState.exam;
+  var sec = ex.sections[ex.sectionIndex];
+  if(!sec) return null;
+  return {
+    q: sec.questions[ex.currentIndex],
+    subject: sec.name, subjectCls: sec.cls, timePerQ: sec.timePerQ,
+    idxInSection: ex.currentIndex,
+    totalInSection: sec.questions.length,
+    flatIndex: getFlatIdx(),
+    totalQ: ex.sections.reduce(function(s,sec){return s+sec.questions.length},0)
+  };
+}
+
+function getFlatIdx(){
+  var ex = appState.exam;
+  var idx = 0;
+  for(var i = 0; i < ex.sectionIndex; i++){
+    idx += ex.sections[i].questions.length;
+  }
+  return idx + ex.currentIndex;
+}
+
+function renderExam(){
+  var cur = getCurrentQ();
+  if(!cur){ finishExam(); return; }
+
+  var ex = appState.exam;
+  var sec = ex.sections[ex.sectionIndex];
+  var q = cur.q;
+  var totalQ = cur.totalQ;
+  var flatNum = cur.flatIndex + 1;
+
+  ex.selectedOptions = (q.type === 'multi') ? [] : null;
+  ex.timeLeft = cur.timePerQ;
+
+  progressInfo.textContent = sec.name + ' · 第' + (ex.currentIndex + 1) + '/' + sec.questions.length + '题';
+
+  var labels = ['A','B','C','D','E','F'];
+  var optionsHTML = '';
+  if(q.options && q.options.length > 0){
+    for(var i = 0; i < q.options.length; i++){
+      optionsHTML += '<div class="exam-option" id="opt' + i + '" onclick="selOpt(' + i + ')">' +
+        '<span class="opt-letter">' + labels[i] + '</span>' +
+        '<span>' + q.options[i].replace(/^[A-F][.、]?\s*/, '') + '</span>' +
+      '</div>';
+    }
+  }
+
+  var multiHint = '';
+  if(q.type === 'multi'){
+    multiHint = '<div style="font-size:12px;color:var(--orange);margin-bottom:8px">※ 多选题：点击多个选项，全对得分，错选漏选不得分</div>';
+  }
+
+  var multiTag = '';
+  if(q.type === 'multi'){
+    multiTag = '<span class="multi-tag">多选</span> ';
+  }
+
+  main.innerHTML = '<div class="exam-screen">' +
+    '<div class="exam-header">' +
+      '<span class="subject-badge ' + cur.subjectCls + '">' + cur.subject + '</span>' +
+      '<span class="q-counter">第 ' + flatNum + ' / ' + totalQ + ' 题</span>' +
+      '<div class="timer-wrap">' +
+        '<div class="timer-bar"><div class="timer-bar-fill normal" id="timerBar" style="width:100%"></div></div>' +
+        '<span class="timer-text" id="timerText">' + cur.timePerQ + '″</span>' +
+      '</div>' +
+    '</div>' +
+    '<div class="exam-question" id="questionBox">' +
+      '<div class="q-num">第 ' + (ex.currentIndex + 1) + ' 题 · ' + cur.subject + '</div>' +
+      '<div class="q-text">' + multiTag + q.question + '</div>' +
+      multiHint +
+      '<div class="exam-options" id="optionsList">' + optionsHTML + '</div>' +
+    '</div>' +
+    '<div class="exam-submit">' +
+      '<button onclick="submitAns()" id="submitBtn">✓ 确认答案</button>' +
+    '</div>' +
+  '</div>';
+
+  startTimer(cur.timePerQ);
+}
+
+function selOpt(index){
+  var ex = appState.exam;
+  var cur = getCurrentQ();
+  if(!cur) return;
+
+  if(cur.q.type === 'multi'){
+    var sel = ex.selectedOptions;
+    var pos = -1;
+    for(var i = 0; i < sel.length; i++){
+      if(sel[i] === index){ pos = i; break; }
+    }
+    var el = document.getElementById('opt' + index);
+    if(pos >= 0){
+      sel.splice(pos, 1);
+      if(el) el.classList.remove('multi-selected');
+    } else {
+      sel.push(index);
+      if(el) el.classList.add('multi-selected');
+    }
+  } else {
+    var all = document.querySelectorAll('.exam-option');
+    for(var i = 0; i < all.length; i++){
+      all[i].classList.remove('selected');
+    }
+    var el = document.getElementById('opt' + index);
+    if(el) el.classList.add('selected');
+    ex.selectedOptions = [index];
+  }
+}
+
+function submitAns(){
+  var ex = appState.exam;
+  if(ex.timerInterval){
+    clearInterval(ex.timerInterval);
+    ex.timerInterval = null;
+  }
+
+  var cur = getCurrentQ();
+  if(!cur) return;
+
+  var flatIdx = cur.flatIndex;
+
+  if(cur.q.type === 'multi'){
+    ex.userAnswers[flatIdx] = ex.selectedOptions.slice().sort();
+  } else {
+    ex.userAnswers[flatIdx] = (ex.selectedOptions && ex.selectedOptions.length > 0) ? ex.selectedOptions[0] : -1;
+  }
+
+  advanceQ();
+}
+
+function advanceQ(){
+  var ex = appState.exam;
+  var sec = ex.sections[ex.sectionIndex];
+  ex.currentIndex++;
+  if(ex.currentIndex >= sec.questions.length){
+    ex.sectionIndex++;
+    ex.currentIndex = 0;
+    if(ex.sectionIndex >= ex.sections.length){
+      finishExam();
+      return;
+    }
+  }
+  renderExam();
+}
+
+function startTimer(seconds){
+  var ex = appState.exam;
+  ex.timeLeft = seconds;
+  var totalTime = seconds;
+  if(ex.timerInterval){ clearInterval(ex.timerInterval); }
+
+  ex.timerInterval = setInterval(function(){
+    ex.timeLeft--;
+    var pct = ex.timeLeft > 0 ? (ex.timeLeft / totalTime) * 100 : 0;
+    if(pct < 0) pct = 0;
+
+    var timerBar = document.getElementById('timerBar');
+    var timerText = document.getElementById('timerText');
+    var questionBox = document.getElementById('questionBox');
+
+    if(timerBar){
+      timerBar.style.width = pct + '%';
+      var cls = pct > 50 ? 'normal' : (pct > 25 ? 'warning' : 'danger');
+      timerBar.className = 'timer-bar-fill ' + cls;
+    }
+    if(timerText){
+      timerText.textContent = ex.timeLeft + '″';
+      var cls2 = ex.timeLeft > totalTime * 0.5 ? '' : (ex.timeLeft > totalTime * 0.25 ? 'warning' : 'danger');
+      timerText.className = 'timer-text ' + cls2;
+    }
+
+    if(ex.timeLeft <= 5 && ex.timeLeft > 0 && timerText){
+      timerText.classList.add('pulse');
+      setTimeout(function(){
+        if(timerText) timerText.classList.remove('pulse');
+      }, 600);
+    }
+
+    if(ex.timeLeft <= 0){
+      clearInterval(ex.timerInterval);
+      ex.timerInterval = null;
+      var flatIdx = getFlatIdx();
+      if(!(flatIdx in ex.userAnswers)){
+        ex.userAnswers[flatIdx] = -1;
+      }
+      if(questionBox){
+        questionBox.classList.add('flash-red');
+        setTimeout(function(){
+          if(questionBox) questionBox.classList.remove('flash-red');
+        }, 800);
+      }
+      ex.timedOut = true;
+      setTimeout(function(){ advanceQ(); }, 600);
+    }
+  }, 1000);
+}
+
+function finishExam(){
+  var ex = appState.exam;
+  if(ex.timerInterval){
+    clearInterval(ex.timerInterval);
+    ex.timerInterval = null;
+  }
+  ex.completed = true;
+  navigate('results');
+}
+
+// ==================== 结果 ====================
+function renderResults(){
+  var ex = appState.exam;
+  var allQ = [];
+  for(var s = 0; s < ex.sections.length; s++){
+    var sec = ex.sections[s];
+    for(var i = 0; i < sec.questions.length; i++){
+      allQ.push({ q: sec.questions[i], subject: sec.name, subjectCls: sec.cls });
+    }
+  }
+
+  var total = allQ.length;
+  var correctCount = 0;
+  var subjR = {'英语':{total:0,correct:0}, '语文':{total:0,correct:0}, '数学':{total:0,correct:0}};
+  var reviewData = [];
+
+  for(var i = 0; i < allQ.length; i++){
+    var ua = (ex.userAnswers[i] !== undefined) ? ex.userAnswers[i] : -1;
+    var isCorrect = checkAns(allQ[i].q, ua);
+    subjR[allQ[i].subject].total++;
+    if(isCorrect){
+      correctCount++;
+      subjR[allQ[i].subject].correct++;
+    }
+    reviewData.push({
+      q: allQ[i].q, subject: allQ[i].subject,
+      index: i, userAnswer: ua, isCorrect: isCorrect
+    });
+  }
+
+  var score = Math.round((correctCount / total) * 150);
+  var rate = Math.round(correctCount / total * 100);
+
+  var subjects = ['英语','语文','数学'];
+  var cardsHTML = '';
+  for(var s = 0; s < subjects.length; s++){
+    var sb = subjects[s];
+    var sr = subjR[sb];
+    var cls = (sb === '英语') ? 'english' : (sb === '语文') ? 'chinese' : 'math';
+    cardsHTML += '<div class="score-card ' + cls + '">' +
+      '<div class="subj">' + sb + '</div>' +
+      '<div class="pts">' + sr.correct + '/' + sr.total + '</div>' +
+      '<div class="rate">' + Math.round(sr.correct / Math.max(1,sr.total) * 100) + '%</div>' +
+    '</div>';
+  }
+
+  main.innerHTML = '<div class="results-screen">' +
+    '<div class="results-header">' +
+      '<h1>📊 考试完成！</h1>' +
+      '<div class="score-big">' + score + '</div>' +
+      '<div class="score-label">满分150分 · 正确 ' + correctCount + '/' + total + ' · 正确率 ' + rate + '%</div>' +
+    '</div>' +
+    '<div class="score-grid">' + cardsHTML + '</div>' +
+    '<div class="results-actions">' +
+      '<button onclick="startExam()">🔄 重新考试</button>' +
+      '<button class="primary" onclick="showReview()">📋 查看答案与解析</button>' +
+      '<button onclick="navigate(\'home\')">🏠 返回首页</button>' +
+    '</div>' +
+  '</div>';
+
+  appState._reviewData = reviewData;
+}
+
+function checkAns(q, ua){
+  if(q.type === 'multi'){
+    var correct = q.answer.slice().sort();
+    var user = (ua && ua.length) ? ua.slice().sort() : [];
+    if(correct.length !== user.length) return false;
+    for(var i = 0; i < correct.length; i++){
+      if(correct[i] !== user[i]) return false;
+    }
+    return true;
+  }
+  return ua === q.answer;
+}
+
+function showReview(){ navigate('review'); }
+
+function renderReview(){
+  var reviewData = appState._reviewData || [];
+  var labels = ['A','B','C','D','E','F'];
+  var html = '<div class="results-screen"><div style="text-align:center"><h2>📋 答案与解析</h2><p style="color:var(--text-secondary);margin-bottom:14px">全卷共' + reviewData.length + '题</p></div><div class="answer-review">';
+
+  for(var i = 0; i < reviewData.length; i++){
+    var r = reviewData[i];
+    var q = r.q;
+    var correctAns;
+    if(q.type === 'multi'){
+      var ca = [];
+      for(var j = 0; j < q.answer.length; j++){ ca.push(labels[q.answer[j]]); }
+      correctAns = ca.join('、');
+    } else {
+      correctAns = q.answer >= 0 ? labels[q.answer] : '—';
+    }
+
+    var userAnsStr;
+    if(q.type === 'multi'){
+      if(Array.isArray(r.userAnswer) && r.userAnswer.length > 0 && r.userAnswer[0] >= 0){
+        var ua = [];
+        for(var j = 0; j < r.userAnswer.length; j++){ ua.push(labels[r.userAnswer[j]]); }
+        userAnsStr = ua.join('、');
+      } else {
+        userAnsStr = '未作答';
+      }
+    } else {
+      userAnsStr = r.userAnswer >= 0 ? labels[r.userAnswer] : '未作答';
+    }
+
+    html += '<div class="review-item ' + (r.isCorrect ? '' : 'wrong') + '">' +
+      '<div class="ri-q">' + (q.type === 'multi' ? '※' : '') + '第' + (i+1) + '题 [' + r.subject + '] ' + q.question + '</div>';
+    if(!r.isCorrect){
+      html += '<div class="ri-user">你的答案：' + userAnsStr + '</div>';
+    }
+    html += '<div class="ri-a">正确答案：' + correctAns + '</div>';
+    if(q.explanation){
+      html += '<div class="ri-e">💡 ' + q.explanation + '</div>';
+    }
+    html += '</div>';
+  }
+
+  html += '</div><div class="results-actions" style="margin-top:18px;padding-bottom:24px">' +
+    '<button onclick="startExam()">🔄 重新考试</button>' +
+    '<button onclick="navigate(\'home\')">🏠 返回首页</button>' +
+  '</div></div>';
+
+  main.innerHTML = html;
+}
+
+// ==================== 真题浏览 ====================
+function showPracticeList(){ navigate('practiceList'); }
+
+function renderPracticeList(){
+  progressInfo.textContent = '历年真题汇编';
+  var html = '<div class="practice-screen"><h2 style="text-align:center">📚 历年真题汇编（2015—2025）</h2>';
+  html += '<p style="text-align:center;color:var(--text-secondary);margin-bottom:6px">考生回忆版 · 点击年份查看详情</p><div class="year-list">';
+
+  for(var i = 0; i < PAST_PAPERS.length; i++){
+    var p = PAST_PAPERS[i];
+    html += '<div class="year-item" onclick="showPracDetail(' + i + ')">' +
+      '<span class="yr">' + p.year + '年</span>' +
+      '<span class="yr-desc">' + p.summary + '</span></div>';
+  }
+  html += '</div></div>';
+  main.innerHTML = html;
+}
+
+function showPracDetail(yearIndex){ navigate('practiceDetail', {yearIndex: yearIndex}); }
+
+function renderPracticeDetail(yearIndex){
+  var paper = PAST_PAPERS[yearIndex];
+  progressInfo.textContent = paper.year + '年真题';
+  var html = '<div class="practice-screen"><div class="practice-detail">';
+  html += '<div class="pd-header"><h2>' + paper.year + '年武汉外初机考真题</h2><p>' + paper.summary + '</p></div>';
+  html += '<div class="rules-box" style="margin-bottom:8px"><p style="font-size:13px;white-space:pre-line">' + paper.description + '</p></div>';
+
+  if(paper.questions && paper.questions.length > 0){
+    var labels = ['A','B','C','D','E','F'];
+    for(var i = 0; i < paper.questions.length; i++){
+      var q = paper.questions[i];
+      var optionsHTML = '';
+      if(q.options && q.options.length > 0){
+        for(var j = 0; j < q.options.length; j++){
+          optionsHTML += '<div>' + labels[j] + '. ' + q.options[j] + '</div>';
+        }
+      }
+      var answerHTML = '';
+      if(q.answer != null && q.answer !== '' && q.answer !== '-' && q.answer !== '—'){
+        var ansText = '';
+        if(typeof q.answer === 'string'){
+          ansText = q.answer;
+        } else if(Array.isArray(q.answer)){
+          var aa = [];
+          for(var j = 0; j < q.answer.length; j++){ aa.push(labels[q.answer[j]]); }
+          ansText = aa.join('、');
+        } else {
+          ansText = labels[q.answer];
+        }
+        if(q.explanation) ansText += ' — ' + q.explanation;
+        answerHTML = '<button class="show-answer-btn" onclick="var n=this.nextElementSibling;if(n){var s=n.classList.contains(\'show\');n.classList.toggle(\'show\');this.textContent=s?\'查看答案\':\'隐藏答案\'}">查看答案</button>' +
+          '<div class="pq-answer">✅ 答案：' + ansText + '</div>';
+      }
+      html += '<div class="practice-q">' +
+        '<div class="pq-num">第' + (i+1) + '题' + (q.subject ? ' · ' + q.subject : '') + '</div>' +
+        '<div class="pq-text">' + q.question + '</div>' +
+        (optionsHTML ? '<div class="pq-options">' + optionsHTML + '</div>' : '') +
+        answerHTML +
+        (q.note ? '<div style="font-size:12px;color:var(--text-secondary);margin-top:4px">📝 ' + q.note + '</div>' : '') +
+      '</div>';
+    }
+  } else {
+    html += '<div class="empty-state"><div class="icon">📝</div><p>该年份仅有考察要点说明，具体题目回忆不完整</p></div>';
+  }
+
+  html += '</div></div>';
+  main.innerHTML = html;
+}
+
+// ==================== 事件绑定 ====================
+backBtn.addEventListener('click', goBack);
+backBtn.addEventListener('touchend', function(e){ e.preventDefault(); goBack(); });
+
+// ==================== 初始化 ====================
+function init(){
+  renderHome();
+  updateBackBtn();
+  // 检测是否已安装
+  if(window.matchMedia('(display-mode: standalone)').matches){
+    // 已安装模式下不需要安装横幅
+    document.getElementById('installBanner').style.display = 'none';
+  }
+  // 延迟检测——如果3秒后仍未触发beforeinstallprompt，手动显示
+  setTimeout(function(){
+    if(!deferredPrompt && !window.matchMedia('(display-mode: standalone)').matches){
+      // 可能浏览器不支持自动安装提示，显示手动指导
+      var ua = navigator.userAgent.toLowerCase();
+      if(/iphone|ipad|ipod/.test(ua) || /android/.test(ua)){
+        document.getElementById('installBanner').classList.add('show');
+      }
+    }
+  }, 3000);
+}
+
+// ==================== 数据：2026年模拟考察卷 ====================
+var MOCK_ENGLISH = [
+  {question:'选出与 "abundant" 意思最接近的词：',options:['A. scarce','B. plentiful','C. ordinary','D. fragile'],answer:1,explanation:'abundant=丰富的，plentiful=充足的'},
+  {question:"—I can't find my key. —You ______ it in the office.",options:['A. must leave','B. must have left','C. should leave','D. can leave'],answer:1,explanation:'对过去情况的推测用 must have done'},
+  {question:'用英语思维解逻辑：If all Bloops are Razzies and all Razzies are Lazzies, then...',options:['A. All Bloops are Lazzies','B. All Lazzies are Bloops','C. Some Razzies are not Bloops','D. No Lazzies are Razzies'],answer:0,explanation:'三段论推理：所有A是B，所有B是C → 所有A是C'},
+  {question:"时事阅读（2026年）：China's Chang'e-7 mission will explore the Moon's South Pole to search for ______.",options:['A. oil','B. water ice','C. gold','D. aliens'],answer:1,explanation:'嫦娥七号任务探索月球南极寻找水冰'},
+  {question:'跨学科：Which of the following is the chemical symbol for gold?',options:['A. Ag','B. Au','C. Fe','D. Cu'],answer:1,explanation:'Au是金的化学符号（来自拉丁语Aurum），Ag=银，Fe=铁，Cu=铜'},
+  {question:'【阅读A·武汉文化】第6题：The passage mainly tells us about ______. (关于武汉长江与黄鹤楼)',options:["A. Wuhan's food","B. Wuhan's famous landmark","C. Wuhan's weather","D. Wuhan's history"],answer:1,explanation:'文章主要介绍以黄鹤楼为代表的武汉地标'},
+  {question:'【阅读A】第7题："Renowned" in the passage means ______.',options:['A. small','B. famous','C. old','D. new'],answer:1,explanation:'renowned = 著名的'},
+  {question:'【阅读A】第8题：The Yellow Crane Tower is located in ______.',options:['A. Beijing','B. Shanghai','C. Wuhan','D. Nanjing'],answer:2,explanation:'黄鹤楼位于武汉'},
+  {question:'【阅读A】第9题：Which dynasty is mentioned in the passage?',options:['A. Song Dynasty','B. Ming Dynasty','C. Tang Dynasty','D. Qing Dynasty'],answer:2,explanation:'崔颢题诗在唐代'},
+  {question:"【阅读A】第10题：The writer's purpose is to ______.",options:['A. tell a story','B. introduce a place','C. teach a lesson','D. sell a product'],answer:1,explanation:'文章目的为介绍武汉/黄鹤楼'},
+  {question:'【阅读B·AI时事】第11题：What is the main idea of the passage?',options:['A. AI is dangerous','B. AI helps learning but has risks','C. AI should be banned','D. AI is useless'],answer:1,explanation:'AI帮助学习但过度依赖有风险'},
+  {question:'【阅读B】第12题：Experts are worried that AI may ______.',options:['A. be too expensive','B. reduce critical thinking','C. replace teachers','D. be too slow'],answer:1,explanation:'专家担心AI会削弱批判性思维能力'},
+  {question:'【阅读B】第13题："Over-reliance" means depending too ______.',options:['A. little','B. much','C. fast','D. slowly'],answer:1,explanation:'over-reliance = 过度依赖'},
+  {question:'【阅读B】第14题：The writer probably suggests we should ______.',options:['A. never use AI','B. use AI wisely','C. let AI do everything','D. ignore AI'],answer:1,explanation:'作者建议合理使用AI'},
+  {question:'【阅读B】第15题：This passage is most likely from ______.',options:['A. a fairy tale','B. a science magazine','C. a cookbook','D. a travel guide'],answer:1,explanation:'科技类短文最可能来自科学杂志'},
+  {question:'古诗英译："Before my bed a pool of light—can it be frost on the ground?" This poem expresses the poet\'s feeling of ______.',options:['A. excitement','B. homesickness','C. anger','D. fear'],answer:1,explanation:'李白《静夜思》表达思乡之情'},
+  {question:'英语数学心算：What is the sum of the smallest prime number and the smallest composite number?',options:['A. 4','B. 5','C. 6','D. 7'],answer:2,explanation:'最小质数2 + 最小合数4 = 6'},
+  {question:'生活逻辑：If it takes 5 machines 5 minutes to make 5 widgets, how long would it take 100 machines to make 100 widgets?',options:['A. 100 minutes','B. 5 minutes','C. 20 minutes','D. 1 minute'],answer:1,explanation:'每台机器5分钟做1个，100台100个→5分钟'},
+  {question:'文化常识：Which festival is known as the "Chinese Valentine\'s Day"?',options:['A. Spring Festival','B. Dragon Boat Festival','C. Qixi Festival','D. Mid-Autumn Festival'],answer:2,explanation:'七夕节被称为中国情人节'},
+  {question:'图形英语：A cube has ______ faces.',options:['A. 4','B. 6','C. 8','D. 12'],answer:1,explanation:'正方体有6个面'},
+  {question:'【武汉文化】Wuhan\'s famous breakfast culture is called ______.',options:['A. brunch','B. guozao（过早）','C. afternoon tea','D. midnight snack'],answer:1,explanation:'武汉独特的早餐文化称为"过早"'},
+  {question:'【武汉文化】The Yangtze River and ______ River meet in Wuhan.',options:['A. Yellow','B. Han','C. Pearl','D. Heilong'],answer:1,explanation:'长江与汉江在武汉交汇'},
+  {question:'【武汉文化】Wuhan is known as one of the "Three Furnaces" in China because of its ______.',options:['A. heavy snow','B. hot summer','C. strong wind','D. frequent rain'],answer:1,explanation:'武汉因夏季酷热被称为"三大火炉"之一'},
+  {question:'【武汉文化】Which bridge was the first on the Yangtze River?',options:['A. Nanjing Bridge','B. Wuhan Yangtze River Bridge','C. HK-Zhuhai Bridge','D. Golden Gate Bridge'],answer:1,explanation:'武汉长江大桥是长江上第一座大桥'},
+  {question:'【武汉文化】Wuhan is the capital city of ______ Province.',options:['A. Hunan','B. Hubei','C. Henan','D. Jiangxi'],answer:1,explanation:'武汉是湖北省省会'},
+  {question:'Neither Tom nor his brothers ______ going to the party.',options:['A. is','B. are','C. was','D. be'],answer:1,explanation:'neither...nor...就近原则，his brothers为复数用are'},
+  {question:'The more you read, ______ you will know.',options:['A. the more','B. the most','C. more','D. most'],answer:0,explanation:'the more...the more... 越...越...'},
+  {question:'—______ is the distance from your home to school? —About 2 kilometers.',options:['A. How long','B. How far','C. How often','D. How much'],answer:1,explanation:'How far提问距离'},
+  {question:'"趁热吃" in English is best translated as "Eat while it is ______."',options:['A. cold','B. hot','C. warm','D. cool'],answer:1,explanation:'"趁热吃" = Eat while it is hot'},
+  {question:'Choose the word with a different stress pattern:',options:["A. 'photograph","B. pho'tographer","C. 'telephone","D. 'beautiful"],answer:1,explanation:'photographer重音在第二音节，其他重音在第一音节'}
+];
+
+var MOCK_CHINESE = [
+  {question:'下列词语中加点字读音全部正确的一项是：',options:['A. 黄鹤楼（hè）热干面（lè）','B. 珞珈山（luò）昙华林（tán）','C. 龟山（guī）沌口（dùn）','D. 江汉路（jiāng）簋街（guǐ）'],answer:1,explanation:'A热rè，C龟jūn山（另有龟guī山），D簋guǐ街正确但有争议'},
+  {question:'"武汉三镇"指的是武昌、汉口和______。',options:['A. 汉阳','B. 江岸','C. 硚口','D. 青山'],answer:0,explanation:'武汉三镇=武昌+汉口+汉阳'},
+  {question:'下列诗句与黄鹤楼无关的是：',options:['A. 昔人已乘黄鹤去','B. 黄鹤一去不复返','C. 晴川历历汉阳树','D. 会当凌绝顶，一览众山小'],answer:3,explanation:'D出自杜甫《望岳》，写泰山'},
+  {question:'"过早"在武汉方言中的意思是：',options:['A. 起床太早','B. 吃早餐','C. 提前到达','D. 年龄过大'],answer:1,explanation:'"过早"=吃早餐，武汉独特的早餐文化'},
+  {question:'下列成语书写正确的是：',options:['A. 按步就班','B. 变本加厉','C. 不可明状','D. 出类拔粹'],answer:1,explanation:'A按部就班，C不可名状，D出类拔萃'},
+  {question:'"但愿人长久，千里共婵娟"中"婵娟"指：',options:['A. 月亮','B. 美女','C. 桂花','D. 云彩'],answer:0,explanation:'婵娟=月亮，出自苏轼《水调歌头》'},
+  {question:'《西游记》中"大闹天宫"的主人公是：',options:['A. 唐僧','B. 孙悟空','C. 猪八戒','D. 沙僧'],answer:1,explanation:'孙悟空大闹天宫'},
+  {question:'"先天下之忧而忧，后天下之乐而乐"出自：',options:['A. 《岳阳楼记》','B. 《醉翁亭记》','C. 《桃花源记》','D. 《小石潭记》'],answer:0,explanation:'范仲淹《岳阳楼记》'},
+  {question:'下列哪部作品是鲁迅的？',options:['A. 《骆驼祥子》','B. 《朝花夕拾》','C. 《繁星》','D. 《子夜》'],answer:1,explanation:'A老舍，C冰心，D茅盾'},
+  {question:'武汉被称为"江城"，最早源于哪位诗人的诗句？',options:['A. 李白','B. 杜甫','C. 苏轼','D. 王维'],answer:0,explanation:'李白"黄鹤楼中吹玉笛，江城五月落梅花"'},
+  {question:'"床前明月光，疑是地上霜"运用的修辞手法是：',options:['A. 比喻','B. 拟人','C. 夸张','D. 对偶'],answer:0,explanation:'把月光比作霜，用了比喻'},
+  {question:'"春眠不觉晓，处处闻啼鸟"描写的是______季节。',options:['A. 春','B. 夏','C. 秋','D. 冬'],answer:0,explanation:'春眠→春天'},
+  {question:'"劝君更尽一杯酒，西出阳关无故人"表达的情感是：',options:['A. 喜悦','B. 惜别','C. 愤怒','D. 悠闲'],answer:1,explanation:'送别诗，表达惜别之情'},
+  {question:'"不识庐山真面目，只缘身在此山中"蕴含的哲理是：',options:['A. 要珍惜时间','B. 当局者迷，旁观者清','C. 坚持就是胜利','D. 知识改变命运'],answer:1,explanation:'当局者迷，旁观者清'},
+  {question:'"人生自古谁无死，留取丹心照汗青"中"汗青"指：',options:['A. 史书','B. 汗水','C. 青色','D. 衣服'],answer:0,explanation:'汗青=史书/史册，文天祥《过零丁洋》'},
+  {question:'【阅读·武汉地铁】第16题：武汉地铁2号线起点和终点分别是：',options:['A. 汉口火车站—武昌火车站','B. 天河机场—佛祖岭','C. 武汉火车站—光谷广场','D. 金银潭—光谷广场'],answer:1,explanation:'2号线从天河机场到佛祖岭'},
+  {question:'【阅读】第17题：材料中提到的"最繁忙"判断依据最可能是：',options:['A. 线路长度最长','B. 连接机场与火车站','C. 途经核心区域，客流量大','D. 开通时间最早'],answer:2,explanation:'途经汉口火车站、江汉路等核心区域，客流量大'},
+  {question:'【阅读】第18题："截至2026年"说明这是一则______。',options:['A. 历史故事','B. 新闻报道','C. 科幻小说','D. 诗歌'],answer:1,explanation:'"截至2026年"表明是时效性强的新闻报道'},
+  {question:'【阅读】第19题：根据材料，武汉地铁总里程已突破：',options:['A. 100公里','B. 300公里','C. 500公里','D. 1000公里'],answer:2,explanation:'材料明确"总里程突破500公里"'},
+  {question:'【阅读】第20题：下列站点中，属于2号线的是：',options:['A. 积玉桥','B. 江汉路','C. 街道口','D. 黄浦路'],answer:1,explanation:'江汉路站属于2号线'}
+];
+
+var MOCK_MATH = [
+  {question:'25 × 32 × 125 = ______',options:['A. 100000','B. 10000','C. 1000000','D. 1000'],answer:0,explanation:'25×4×8×125=100×1000=100000'},
+  {question:'1 + 2 + 3 + ... + 20 = ______',options:['A. 200','B. 210','C. 220','D. 190'],answer:1,explanation:'等差数列求和：20×21÷2=210'},
+  {question:'0.125 × 0.25 × 32 = ______',options:['A. 1','B. 0.1','C. 10','D. 0.01'],answer:0,explanation:'0.125×8×0.25×4=1×1=1'},
+  {question:'一个数除以5余3，除以7也余3，这个数最小是：',options:['A. 35','B. 38','C. 40','D. 33'],answer:1,explanation:'[5,7]=35，35+3=38'},
+  {question:'2026 ÷ 4 的余数是：',options:['A. 0','B. 1','C. 2','D. 3'],answer:2,explanation:'2024能被4整除，2026余2'},
+  {question:'小明从家到学校，去时速度60米/分，回时40米/分，往返平均速度是：',options:['A. 50米/分','B. 48米/分','C. 52米/分','D. 45米/分'],answer:1,explanation:'设路程120米，去2分回3分，平均240÷5=48米/分'},
+  {question:'找规律：2, 5, 11, 23, 47, ______',options:['A. 95','B. 94','C. 96','D. 93'],answer:0,explanation:'规律：×2+1，47×2+1=95'},
+  {question:'一个长方形长增加3厘米，宽减少3厘米，它的周长：',options:['A. 增加6厘米','B. 减少6厘米','C. 不变','D. 无法确定'],answer:2,explanation:'长+宽的和不变，周长不变'},
+  {question:'用0, 1, 2, 3能组成多少个没有重复数字的三位数？',options:['A. 16','B. 18','C. 24','D. 20'],answer:1,explanation:'百位3种（不含0），十位3种，个位2种，3×3×2=18'},
+  {question:'一项工程，甲单独做10天完成，乙单独做15天完成，两人合作需要：',options:['A. 6天','B. 8天','C. 25天','D. 5天'],answer:0,explanation:'1÷(1/10+1/15)=1÷(5/30)=6天'},
+  {question:'正方体展开图中，在一个标准十字展开图中，若中间一行从左到右为1-2-3-4，上方为5，下方为6，则与2相对的是：',options:['A. 1','B. 3','C. 4','D. 6'],answer:2,explanation:'展开图相对面规律：间隔一个面，2对4'},
+  {question:'钟面上3:30，时针与分针的夹角是：',options:['A. 90°','B. 75°','C. 60°','D. 45°'],answer:1,explanation:'3:30时针在3和4中间(偏15°)，分针在6(180°)，夹角75°'},
+  {question:'浓度为20%的盐水200克，要使其浓度变为25%，需要加盐：',options:['A. 10克','B. 12克','C. 13.3克','D. 40克'],answer:2,explanation:'水不变=200×80%=160克，160÷75%=213.33克，需加盐13.33克≈13.3克'},
+  {question:'鸡兔同笼，头共35个，脚共94只，兔有：',options:['A. 12只','B. 13只','C. 23只','D. 22只'],answer:0,explanation:'假设全是鸡70脚，多24脚，兔=24÷2=12只'},
+  {question:'在1~100的自然数中，既不是3的倍数也不是5的倍数的数有：',options:['A. 53个','B. 54个','C. 55个','D. 56个'],answer:0,explanation:'100-33(3的倍数)-20(5的倍数)+6(15的倍数，重复计数)=53个'},
+  {question:'【多选题】下列说法正确的是：',options:['A. 所有的质数都是奇数','B. 圆的周长与直径成正比例','C. 一个三角形中至少有两个锐角','D. 0既不是正数也不是负数'],answer:[1,2,3],type:'multi',explanation:'A错（2是质数也是偶数），B√（C=πd），C√，D√'},
+  {question:'【多选题】能同时被2、3、5整除的数有：',options:['A. 120','B. 345','C. 630','D. 2026'],answer:[0,2],type:'multi',explanation:'必须末位0且数字和是3的倍数：120√（1+2+0=3），345末位不是0×，630√（6+3+0=9），2026末位不是0×'},
+  {question:'定义新运算：a※b = 2a + 3b，则3※4 = ______',options:['A. 18','B. 17','C. 20','D. 12'],answer:0,explanation:'2×3+3×4=6+12=18'},
+  {question:'一个圆柱和一个圆锥等底等高，圆柱体积比圆锥大12立方分米，圆锥体积是：',options:['A. 6立方分米','B. 12立方分米','C. 18立方分米','D. 24立方分米'],answer:0,explanation:'等底等高圆柱体积是圆锥3倍，差2份=12，圆锥1份=6'},
+  {question:'甲乙两仓共存粮360吨，从甲仓运1/4到乙仓后，两仓相等，甲仓原有：',options:['A. 200吨','B. 216吨','C. 240吨','D. 180吨'],answer:2,explanation:'x-0.25x=360-x+0.25x，0.75x=360-0.75x，1.5x=360，x=240'}
+];
+
+var PAST_PAPERS = [
+  {year:2025,summary:'全英文命题 · 68题 · 40分钟 · 满分150分',description:'重大改革：首次全英文模式（难词有中文标注），首次摇号筛选6000人参加机考。数学题约5-6道，英语题占比最大。',questions:[
+    {subject:'数学',question:'比例填空：若 ★ : 5 = 16% : 7，则 ★ = ______。',answer:'4/35'},
+    {subject:'数学',question:'方程填空：若 10.5 ×（□ × 3/16 + 1/3）÷ 1/32 = 11，则 □ = ______。',answer:'4/9'},
+    {subject:'数学',question:'Linda买西瓜，最轻的两个西瓜总重量占比21%，最重的三个西瓜总重量占比48%，问她可能一共买了几个西瓜？',options:['A. 6','B. 7'],answer:1,note:'逻辑推理题'},
+    {subject:'数学',question:'行程问题：路标显示兔子和松鼠家相距一定距离，底下有四个路标，问哪一个路标是错误的？',answer:'图片题，需推理',note:'图形推理'},
+    {subject:'数学/逻辑',question:'If it takes 5 machines 5 minutes to make 5 widgets, how long would it take 100 machines to make 100 widgets?',options:['A. 100 min','B. 5 min','C. 20 min','D. 1 min'],answer:1,explanation:'每台机器5分钟做1个'},
+    {subject:'英语/科技',question:"China's Chang'e-7 mission will explore the Moon's South Pole to search for ______.",options:['A. oil','B. water ice','C. gold','D. aliens'],answer:1},
+    {subject:'英语/谜语',question:'I live in forest, I can climb tree. The spot in my fur can help me hide in the tree. What am I?',options:['A. Crocodile','B. Panda','C. Giraffe','D. Leopard'],answer:3},
+    {subject:'综合',question:'交通常识：遇到黄灯怎么办？',answer:'慢行/减速'},
+    {subject:'综合',question:'下列哪一项对环境有好处？',options:['A. 破坏森林','B. 排放污染物','C. 植树造林','D. 水资源污染'],answer:2},
+    {subject:'综合',question:'图片题：哪一个选项中的乐器需要用气吹？',options:['A. 吉他','B. 小提琴','C. 长笛','D. 中提琴'],answer:2},
+    {subject:'文化',question:'牛郎和织女相见走的是什么桥？',answer:'鹊桥'},
+    {subject:'武汉文化',question:'武汉方言：图片显示"一只鸟 + 一头大蒜 = 蒜鸟"，问哪个选项对应武汉话"吃了冒"？',answer:'图片推理题'},
+    {subject:'时事',question:'考了与《长安的荔枝》相关的成语题。',answer:'—'},
+    {subject:'英语',question:'李白的诗歌用全英文考察；还考了《渔歌子》。',answer:'古诗英译理解'},
+    {subject:'综合',question:'考了诸葛亮相关题目。',answer:'人物常识'},
+    {subject:'综合',question:'阅读理解：甘肃七彩丹霞地貌。',answer:'地理科普阅读'},
+    {subject:'科技',question:'宇航员的帽子相关题目。',answer:'科技常识'},
+    {subject:'武汉文化',question:'武汉地铁：4号线是芳草绿，5号线是首义红，问下一条地铁线路的颜色是？',options:['A. 岳麓南','B. 云鹤黄','C. 姑苏橙','D. 金陵紫'],answer:1},
+    {subject:'逻辑',question:'图片题：一牌正反相似的逻辑推理题。',answer:'图形推理'}
+  ]},
+  {year:2024,summary:'约72题 · 英语语文数学三科混考',description:'继续采用语数外三科混考模式，题量较大。图片题增多；跨学科融合明显。因回忆零散，具体题干难以完整还原。',questions:[
+    {subject:'英语',question:'英语阅读理解与跨学科知识结合，涉及传统文化与西方文化对比。',answer:'—',note:'阅读+文化对比'},
+    {subject:'英语',question:'英语找规律题：数字、字母规律推理。',answer:'—',note:'规律推理'},
+    {subject:'英语',question:'生活情景英语：购物、问路、天气等日常对话。',answer:'—',note:'情景对话'},
+    {subject:'英语',question:'词汇辨析：近义词、反义词选择。',answer:'—',note:'词汇'},
+    {subject:'语文',question:'文学常识：名著作者与朝代匹配。',answer:'—',note:'文学常识'},
+    {subject:'语文',question:'古诗词理解：诗句意境与情感分析。',answer:'—',note:'古诗鉴赏'},
+    {subject:'语文',question:'武汉地域文化：武汉特色小吃、地标建筑相关。',answer:'—',note:'本土文化'},
+    {subject:'语文',question:'现代文阅读：科普类短文理解。',answer:'—',note:'现代文阅读'},
+    {subject:'数学',question:'立体几何与三视图（延续2023年重点）。',answer:'—',note:'三视图'},
+    {subject:'数学',question:'行程问题：ST图（路程-时间图）分析。',answer:'—',note:'ST图分析'},
+    {subject:'数学',question:'逻辑推理：数字规律与图形推理。',answer:'—',note:'规律推理'},
+    {subject:'数学',question:'速算巧算：凑整法心算。',answer:'—',note:'心算'}
+  ]},
+  {year:2023,summary:'71题 · 英语30+数学20+语文21 · 约36分钟',description:'扩招至500人，未进行电脑派位。考察顺序：英语→语文→数学。数学无复杂计算，强调逻辑与心算；语文考武汉本土文化；英语时间极短（15秒/题）。',questions:[
+    {subject:'语文',question:'下面哪种情况更有可能发生？',options:['A. 举头望明月','B. 手可摘星辰'],answer:0},
+    {subject:'语文',question:'下面哪个选项是轴对称图形？',options:['A. 全','B. 面','C. 发','D. 展'],answer:0,explanation:'"全"字呈轴对称'},
+    {subject:'语文',question:'以下哪个武汉小吃有错别字？',options:['A. 欢喜坨','B. 糯米鸡','C. 糊米酒'],answer:'—',note:'字词辨析'},
+    {subject:'语文',question:'没有考病句；考了注释和断句。',answer:'—',note:'文言文基础'},
+    {subject:'语文',question:'文学常识与经典名著。',answer:'—',note:'文学常识'},
+    {subject:'语文',question:'古诗词理解与默写。',answer:'—',note:'古诗'},
+    {subject:'语文',question:'现代文阅读。',answer:'—',note:'现代文'},
+    {subject:'英语',question:'找规律题：数字、字母或图形规律。',answer:'—',note:'规律推理'},
+    {subject:'英语',question:'英语阅读理解：短文理解，涉及生活常识与科普。',answer:'—',note:'阅读'},
+    {subject:'英语',question:'词汇与语法：时态、介词、连词等基础语法。',answer:'—',note:'语法'},
+    {subject:'英语',question:'英语素养题：节日、时政热点、课外英文阅读。',answer:'—',note:'综合素养'},
+    {subject:'数学',question:'第一天买水果和蔬菜花了a元，第二天水果涨价20%，蔬菜涨价10%，多花了b元。第一天买水果花了多少元？',options:['A. 10b-a','B. 10b-1.1a','C. 12b-1.2a','D. 11b-1.1a'],answer:0,explanation:'设水果x，蔬菜a-x。0.1x+0.1a=b → x=10b-a'},
+    {subject:'数学',question:'欢欢、乐乐参加考试（填空题）。欢欢答错1/4；乐乐答错5题。两人都答错的占1/6；都答对的超总数一半。问都答对的有多少题？',answer:'—',note:'容斥问题'},
+    {subject:'数学',question:'数字2、3、5三个数组成的三位数总和是多少？',options:['A. 2340','B. 2220','C. 2150','D. 2400'],answer:1,explanation:'235+253+325+352+523+532=2220'},
+    {subject:'数学',question:'兔妈妈买水果蔬菜共A元。第二天蔬菜涨价10%，水果涨价20%，同样东西多花B元。第二天一共用了多少元？',answer:'A+B',note:'直接推：A+B'},
+    {subject:'数学',question:'电车从始发站每12分钟发一辆。同方向A、B两人，每18分钟一辆超A，每24分钟一辆超B，A与B速度比？',answer:'—',note:'追及问题'},
+    {subject:'数学',question:'立方体上最多增加几个小正方体，使它从左面和上面看图形不变？',answer:'—',note:'三视图'},
+    {subject:'数学',question:'几何：平面几何、轴对称；立体几何、三视图。',answer:'—',note:'几何'},
+    {subject:'数学',question:'行程：火车行程、ST图分析。',answer:'—',note:'行程'},
+    {subject:'数学',question:'逻辑推理+分数应用题。',answer:'—',note:'逻辑+应用'}
+  ]},
+  {year:2022,summary:'约67题 · 英语28+语文19+数学20 · 450人',description:'英语、中药和传统文化相结合成为一大特色。跨学科融合明显；数学题量适中，难度平稳。',questions:[
+    {subject:'英语',question:'英语与中药传统文化结合：考察中药材的英文名称、功效描述。',answer:'—',note:'跨学科·中药'},
+    {subject:'英语',question:'英语阅读理解：涉及中国传统节日与习俗。',answer:'—',note:'文化阅读'},
+    {subject:'英语',question:'词汇题：与传统文化相关的英文词汇。',answer:'—',note:'文化词汇'},
+    {subject:'英语',question:'语法题：基础语法选择。',answer:'—',note:'语法'},
+    {subject:'语文',question:'文学常识：古诗词与作者匹配。',answer:'—',note:'文学常识'},
+    {subject:'语文',question:'文言文阅读：简短文言文理解。',answer:'—',note:'文言文'},
+    {subject:'语文',question:'现代文阅读：科普类短文。',answer:'—',note:'现代文'},
+    {subject:'语文',question:'字词基础：拼音、汉字、成语。',answer:'—',note:'字词'},
+    {subject:'数学',question:'基础运算与速算。',answer:'—',note:'速算'},
+    {subject:'数学',question:'图形推理：轴对称、旋转。',answer:'—',note:'图形推理'},
+    {subject:'数学',question:'应用题：分数、百分数实际问题。',answer:'—',note:'应用题'},
+    {subject:'数学',question:'逻辑推理：简单的逻辑判断题。',answer:'—',note:'逻辑'}
+  ]},
+  {year:2021,summary:'约70题 · 三科混考',description:'整体难度适中，注重基础知识的熟练度；语文考察范围宽泛。英语第1-2题为培训机构模拟题，供参考。',questions:[
+    {subject:'英语/数学',question:'There are ______ triangles and ______ rectangles in the picture.',options:['A. 10, 4','B. 12, 5','C. 14, 6','D. 14, 7'],answer:3,explanation:'各大小三角形共14个，长方形7个'},
+    {subject:'英语/数学',question:"What's 2/3 and 1/4? It's _______.",options:['A. three-sevenths','B. seven-thirds','C. eleven-twelfths'],answer:2,explanation:'2/3+1/4=8/12+3/12=11/12'},
+    {subject:'英语',question:'英语阅读理解：生活场景与科普短文。',answer:'—',note:'阅读'},
+    {subject:'英语',question:'语法题：时态、句型转换。',answer:'—',note:'语法'},
+    {subject:'英语',question:'词汇辨析：近义词、反义词。',answer:'—',note:'词汇'},
+    {subject:'语文',question:'字音字形：易错字辨析。',answer:'—',note:'字词'},
+    {subject:'语文',question:'成语运用：成语含义与语境匹配。',answer:'—',note:'成语'},
+    {subject:'语文',question:'古诗词默写与理解。',answer:'—',note:'古诗'},
+    {subject:'语文',question:'现代文阅读：记叙文与说明文。',answer:'—',note:'现代文'},
+    {subject:'数学',question:'速算巧算：凑整法、提取公因数。',answer:'—',note:'速算'},
+    {subject:'数学',question:'几何：平面图形面积、周长。',answer:'—',note:'几何'},
+    {subject:'数学',question:'逻辑推理：数独、找规律。',answer:'—',note:'逻辑推理'}
+  ]},
+  {year:2020,summary:'约70题 · 位置和方向是重点',description:'数学突出"位置和方向"；天文常识题出现；整体节奏快，心算要求高。以下为百度文库收录的具体回忆题目。',questions:[
+    {subject:'数学',question:'有4块完全相同的长方体（长3宽2高1），拼成如图所示的图形，再加2块，表面积最大是多少？',options:['A. 96','B. 104','C. 108'],answer:2,explanation:'拼接处面积要小，最大表面积=(2×3×6+1×3×4+1×2×3)×2=108'},
+    {subject:'数学',question:'饭饭要购买13棵树苗，每棵16元，买三送一，最少需花多少钱？',options:['A. 144','B. 160','C. 208','D. 192'],answer:1,explanation:'4棵一组需买3组+1=10棵，16×10=160元'},
+    {subject:'数学',question:'一颗距地球778270000千米的小行星，约多少亿千米（保留一位小数）？',options:['A. 7.7','B. 7.8','C. 7.9','D. 8.0'],answer:1,explanation:'百分位8＞5，进1得7.8亿'},
+    {subject:'数学',question:'下面与2最接近的是哪个数？（图片题，涉及小数、分数比较）',answer:'—',note:'数感比较'},
+    {subject:'数学',question:'位置和方向：根据描述判断方位、路线图。',answer:'—',note:'方位判断'},
+    {subject:'数学',question:'速算：小数、分数混合运算。',answer:'—',note:'速算'},
+    {subject:'数学',question:'几何：立体图形三视图。',answer:'—',note:'三视图'},
+    {subject:'语文',question:'文学常识：作家作品匹配。',answer:'—',note:'文学常识'},
+    {subject:'语文',question:'阅读理解：记叙文与说明文。',answer:'—',note:'阅读'},
+    {subject:'语文',question:'文言文：简短寓言故事。',answer:'—',note:'文言文'},
+    {subject:'英语',question:'阅读理解：日常生活类短文。',answer:'—',note:'阅读'},
+    {subject:'英语',question:'词汇：情景词汇辨析。',answer:'—',note:'词汇'},
+    {subject:'英语',question:'语法：一般现在时、现在进行时。',answer:'—',note:'语法'}
+  ]},
+  {year:2019,summary:'约70题 · 文学常识与历史顺序结合',description:'语文考察文学常识与历史顺序结合是亮点；数学难度适中，强调基础应用。具体题干回忆不完整。',questions:[
+    {subject:'语文',question:'文学常识与历史更迭顺序相结合：按朝代排序作家作品。',answer:'—',note:'历史顺序'},
+    {subject:'语文',question:'古诗词理解：诗句意境、修辞手法。',answer:'—',note:'古诗'},
+    {subject:'语文',question:'名著阅读：《西游记》《红楼梦》等经典情节。',answer:'—',note:'名著'},
+    {subject:'语文',question:'字词基础：多音字、形近字辨析。',answer:'—',note:'字词'},
+    {subject:'语文',question:'现代文阅读：记叙文理解。',answer:'—',note:'现代文'},
+    {subject:'英语',question:'阅读理解：科普类与生活类短文。',answer:'—',note:'阅读'},
+    {subject:'英语',question:'词汇：与学校生活相关的词汇。',answer:'—',note:'词汇'},
+    {subject:'英语',question:'语法：一般过去时、比较级。',answer:'—',note:'语法'},
+    {subject:'数学',question:'计算：整数、小数四则混合运算。',answer:'—',note:'计算'},
+    {subject:'数学',question:'应用题：工程问题、行程问题。',answer:'—',note:'应用题'},
+    {subject:'数学',question:'几何：长方形、正方形面积与周长。',answer:'—',note:'几何'}
+  ]},
+  {year:2018,summary:'66题 · 语文28+英语22+数学16 · 36分钟 · 150分',description:'数学试卷考察较全面，考题不难，英语语文很简单，数学稍难。',questions:[
+    {subject:'数学',question:'计算题：速算与巧算。',answer:'—',note:'速算'},
+    {subject:'数学',question:'几何：平面图形面积计算。',answer:'—',note:'几何'},
+    {subject:'数学',question:'应用题：分数、百分数应用题。',answer:'—',note:'应用题'},
+    {subject:'数学',question:'逻辑推理：简单的逻辑判断题。',answer:'—',note:'逻辑'},
+    {subject:'数学',question:'行程问题：基础行程计算。',answer:'—',note:'行程'},
+    {subject:'语文',question:'文学常识：古诗词背诵与理解。',answer:'—',note:'古诗'},
+    {subject:'语文',question:'阅读理解：现代文阅读。',answer:'—',note:'现代文'},
+    {subject:'语文',question:'基础知识：字音、字形、成语。',answer:'—',note:'字词'},
+    {subject:'语文',question:'文言文：简短寓言。',answer:'—',note:'文言文'},
+    {subject:'英语',question:'阅读理解：简短对话与短文。',answer:'—',note:'阅读'},
+    {subject:'英语',question:'词汇：日常生活词汇。',answer:'—',note:'词汇'},
+    {subject:'英语',question:'语法：基础句型与时态。',answer:'—',note:'语法'}
+  ]},
+  {year:2017,summary:'约70题 · 人机对话模式成熟',description:'题型稳定，难度适中；部分题目含听力考察（后取消）。具体题干回忆不完整。',questions:[
+    {subject:'英语',question:'英语听力理解（注：2017年及以前部分年份有听力，后取消）。',answer:'—',note:'听力（已取消）'},
+    {subject:'英语',question:'阅读理解：故事类短文。',answer:'—',note:'阅读'},
+    {subject:'英语',question:'词汇语法：基础语法选择。',answer:'—',note:'语法'},
+    {subject:'语文',question:'古诗词：背诵与默写。',answer:'—',note:'古诗'},
+    {subject:'语文',question:'阅读理解：记叙文。',answer:'—',note:'现代文'},
+    {subject:'语文',question:'基础知识：拼音、汉字、成语。',answer:'—',note:'字词'},
+    {subject:'数学',question:'计算：整数、小数运算。',answer:'—',note:'计算'},
+    {subject:'数学',question:'应用题：简单行程、工程问题。',answer:'—',note:'应用题'},
+    {subject:'数学',question:'几何：基础图形认知。',answer:'—',note:'几何'}
+  ]},
+  {year:2016,summary:'约70题 · 人机对话形式确立',description:'首次全面采用电脑机考，单题限时。考察顺序：英语→语文→数学。无纸笔演算，全程心算。为后续年份机考奠定基础。',questions:[
+    {subject:'英语',question:'阅读理解、词汇语法、生活情景英语。',answer:'—',note:'英语综合'},
+    {subject:'语文',question:'文学常识、古诗词、现代文阅读。',answer:'—',note:'语文综合'},
+    {subject:'数学',question:'速算、几何、应用题。',answer:'—',note:'数学综合'}
+  ]},
+  {year:2015,summary:'约70题 · 机考元年 · 过渡年份',description:'外初机考元年，从传统笔试向人机对话过渡。开始尝试机考形式，部分题目电脑作答，仍有部分传统笔试元素。题型与难度相对平稳。',questions:[
+    {subject:'英语',question:'基础词汇、简单对话。',answer:'—',note:'英语基础'},
+    {subject:'语文',question:'字词基础、古诗词。',answer:'—',note:'语文基础'},
+    {subject:'数学',question:'四则运算、简单应用题。',answer:'—',note:'数学基础'}
+  ]}
+];
+
+init();
+</script>
+</body>
+</html>

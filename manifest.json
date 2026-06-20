@@ -1,0 +1,23 @@
+{
+  "name": "武汉外初 · 人机对话模拟训练",
+  "short_name": "外初机考训练",
+  "description": "武汉外初小升初人机对话模拟考察卷训练",
+  "start_url": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#f5f7fa",
+  "theme_color": "#1a56db",
+  "lang": "zh-CN",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
