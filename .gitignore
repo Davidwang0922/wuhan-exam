@@ -1,0 +1,8 @@
+# Backup files
+*_old.html
+*_pre*.html
+*_backup.*
+
+# OS files
+.DS_Store
+Thumbs.db

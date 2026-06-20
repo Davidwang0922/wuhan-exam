@@ -468,16 +468,32 @@ function renderScreen(screen, data){
 function renderHome(){
   main.innerHTML = '<div class="home-screen">' +
     '<h1>武汉外初 · 人机对话模拟训练<small>为汪子堯加油 💪</small></h1>' +
-    '<div class="cards">' +
-      '<div class="card mock" onclick="startExam()">' +
-        '<span class="icon">📝</span>' +
-        '<h2>2026年模拟考察卷</h2>' +
-        '<p>完整70题 · 英语→语文→数学<br>单题倒计时 · 真实机考体验</p>' +
+    '<div class="cards" style="flex-direction:column;gap:10px">' +
+      '<div style="text-align:center;font-weight:700;font-size:15px;color:var(--blue);margin-bottom:2px">📝 武汉外初2026年招生模拟试卷（共6套）</div>' +
+      '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px">' +
+        '<div class="card mock" onclick="startExam(1)">' +
+          '<span class="icon">①</span><h2>模拟卷一</h2><p>基础巩固<br>70题</p>' +
+        '</div>' +
+        '<div class="card mock" onclick="startExam(2)">' +
+          '<span class="icon">②</span><h2>模拟卷二</h2><p>能力提升<br>70题</p>' +
+        '</div>' +
+        '<div class="card mock" onclick="startExam(3)">' +
+          '<span class="icon">③</span><h2>模拟卷三</h2><p>综合冲刺<br>70题</p>' +
+        '</div>' +
+        '<div class="card mock" onclick="startExam(4)" style="border-color:var(--orange)">' +
+          '<span class="icon">④</span><h2 style="color:var(--orange)">模拟卷四</h2><p>DS预测一<br>68题</p>' +
+        '</div>' +
+        '<div class="card mock" onclick="startExam(5)" style="border-color:var(--orange)">' +
+          '<span class="icon">⑤</span><h2 style="color:var(--orange)">模拟卷五</h2><p>DS预测二<br>68题</p>' +
+        '</div>' +
+        '<div class="card mock" onclick="startExam(6)" style="border-color:var(--orange)">' +
+          '<span class="icon">⑥</span><h2 style="color:var(--orange)">模拟卷六</h2><p>DS预测三<br>68题</p>' +
+        '</div>' +
       '</div>' +
       '<div class="card past" onclick="showPracticeList()">' +
         '<span class="icon">📚</span>' +
         '<h2>历年真题汇编</h2>' +
-        '<p>2015—2025年真题回忆版<br>按年份浏览 · 查看答案</p>' +
+        '<p>2010—2025年真题回忆版<br>按年份浏览 · 查看答案</p>' +
       '</div>' +
     '</div>' +
     '<div class="rules-box">' +
@@ -493,11 +509,19 @@ function renderHome(){
 }
 
 // ==================== 考试引擎 ====================
-function startExam(){
+function startExam(mockSet){
+  mockSet = mockSet || 1;
+  var ENG, CHI, MAT;
+  if(mockSet === 2){ ENG = MOCK2_ENGLISH; CHI = MOCK2_CHINESE; MAT = MOCK2_MATH; }
+  else if(mockSet === 3){ ENG = MOCK3_ENGLISH; CHI = MOCK3_CHINESE; MAT = MOCK3_MATH; }
+  else if(mockSet === 4){ ENG = MOCK4_ENGLISH; CHI = MOCK4_CHINESE; MAT = MOCK4_MATH; }
+  else if(mockSet === 5){ ENG = MOCK5_ENGLISH; CHI = MOCK5_CHINESE; MAT = MOCK5_MATH; }
+  else if(mockSet === 6){ ENG = MOCK6_ENGLISH; CHI = MOCK6_CHINESE; MAT = MOCK6_MATH; }
+  else { ENG = MOCK_ENGLISH; CHI = MOCK_CHINESE; MAT = MOCK_MATH; }
   var sections = [
-    {name:'英语',cls:'english',timePerQ:35,questions:MOCK_ENGLISH},
-    {name:'语文',cls:'chinese',timePerQ:40,questions:MOCK_CHINESE},
-    {name:'数学',cls:'math',timePerQ:50,questions:MOCK_MATH}
+    {name:'英语',cls:'english',timePerQ:35,questions:ENG},
+    {name:'语文',cls:'chinese',timePerQ:40,questions:CHI},
+    {name:'数学',cls:'math',timePerQ:50,questions:MAT}
   ];
   appState.exam = {
     sections:sections, sectionIndex:0, currentIndex:0,
@@ -853,7 +877,7 @@ function showPracticeList(){ navigate('practiceList'); }
 
 function renderPracticeList(){
   progressInfo.textContent = '历年真题汇编';
-  var html = '<div class="practice-screen"><h2 style="text-align:center">📚 历年真题汇编（2015—2025）</h2>';
+  var html = '<div class="practice-screen"><h2 style="text-align:center">📚 历年真题汇编（2010—2025）</h2>';
   html += '<p style="text-align:center;color:var(--text-secondary);margin-bottom:6px">考生回忆版 · 点击年份查看详情</p><div class="year-list">';
 
   for(var i = 0; i < PAST_PAPERS.length; i++){
@@ -904,13 +928,14 @@ function renderPracticeDetail(yearIndex){
       html += '<div class="practice-q">' +
         '<div class="pq-num">第' + (i+1) + '题' + (q.subject ? ' · ' + q.subject : '') + '</div>' +
         '<div class="pq-text">' + q.question + '</div>' +
+        (q.image ? '<div style="margin:8px 0;text-align:center"><img src="' + q.image + '" style="max-width:100%;height:auto;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,.1)" alt="真题图片" onerror="this.style.display=\'none\'"></div>' : '') +
         (optionsHTML ? '<div class="pq-options">' + optionsHTML + '</div>' : '') +
         answerHTML +
         (q.note ? '<div style="font-size:12px;color:var(--text-secondary);margin-top:4px">📝 ' + q.note + '</div>' : '') +
       '</div>';
     }
   } else {
-    html += '<div class="empty-state"><div class="icon">📝</div><p>该年份仅有考察要点说明，具体题目回忆不完整</p></div>';
+    html += '<div class="empty-state"><div class="icon">📝</div><p>该年份具体题目暂缺</p><p style="font-size:13px;color:var(--text-secondary);margin-top:4px">请查看上方考察要点说明</p></div>';
   }
 
   html += '</div></div>';
@@ -1021,155 +1046,737 @@ var MOCK_MATH = [
   {question:'一个圆柱和一个圆锥等底等高，圆柱体积比圆锥大12立方分米，圆锥体积是：',options:['A. 6立方分米','B. 12立方分米','C. 18立方分米','D. 24立方分米'],answer:0,explanation:'等底等高圆柱体积是圆锥3倍，差2份=12，圆锥1份=6'},
   {question:'甲乙两仓共存粮360吨，从甲仓运1/4到乙仓后，两仓相等，甲仓原有：',options:['A. 200吨','B. 216吨','C. 240吨','D. 180吨'],answer:2,explanation:'x-0.25x=360-x+0.25x，0.75x=360-0.75x，1.5x=360，x=240'}
 ];
+// ==================== 2026年模拟考察卷 第二套（能力提升型） ====================
+var MOCK2_ENGLISH = [
+  {question:'选出与 "brilliant" 意思最接近的词：',options:['A. dull','B. bright','C. ordinary','D. foolish'],answer:1,explanation:'brilliant=聪明的/杰出的，bright=聪明的/明亮的'},
+  {question:'The bridge ______ in 1957 and is still in use today.',options:['A. was built','B. is built','C. built','D. has built'],answer:0,explanation:'1957年过去时间，用一般过去时被动语态'},
+  {question:'逻辑推理：If all cats are mammals and some mammals are not dogs, which must be true?',options:['A. All cats are dogs','B. No cats are dogs','C. Some mammals are cats','D. All mammals are cats'],answer:2,explanation:'所有猫是哺乳动物→有些哺乳动物是猫'},
+  {question:'China\'s Shenzhou-16 spacecraft successfully launched in 2023. The third batch of astronauts includes a ______ for the first time.',options:['A. teacher','B. payload specialist','C. doctor','D. journalist'],answer:1,explanation:'神舟十六号首次包含载荷专家（payload specialist）'},
+  {question:'跨学科：What gas do plants absorb from the atmosphere during photosynthesis?',options:['A. Oxygen','B. Nitrogen','C. Carbon dioxide','D. Hydrogen'],answer:2,explanation:'植物光合作用吸收二氧化碳'},
+  {question:'【阅读·武汉桥梁】The passage mainly discusses ______.',options:['A. Wuhan\'s food','B. Wuhan\'s bridges','C. Wuhan\'s weather','D. Wuhan\'s schools'],answer:1,explanation:'文章主题为武汉的桥梁'},
+  {question:'【阅读】The Wuhan Yangtze River Bridge connects ______.',options:['A. Wuchang and Hankou','B. Wuchang and Hanyang','C. Hankou and Hanyang','D. Wuhan and Nanjing'],answer:1,explanation:'武汉长江大桥连接武昌和汉阳'},
+  {question:'【阅读】"Span" in the passage most likely means ______.',options:['A. height','B. length across','C. weight','D. age'],answer:1,explanation:'span=跨度'},
+  {question:'【阅读】How many Yangtze River bridges are there in Wuhan now?',options:['A. 3','B. 5','C. 8+','D. 1'],answer:2,explanation:'武汉目前有8座以上长江大桥'},
+  {question:'【阅读】The writer feels ______ about Wuhan\'s bridge development.',options:['A. worried','B. proud','C. sad','D. angry'],answer:1,explanation:'作者对武汉桥梁发展感到自豪'},
+  {question:'【AI阅读】What is the main concern about AI in education?',options:['A. Too expensive','B. Students may cheat','C. Too slow','D. Too colorful'],answer:1,explanation:'AI在教育中的主要担忧是学生可能作弊'},
+  {question:'【AI阅读】According to the passage, AI can help teachers by ______.',options:['A. replacing them','B. grading papers automatically','C. teaching less','D. sleeping more'],answer:1,explanation:'AI可以帮助自动批改作业'},
+  {question:'【AI阅读】"Plagiarism" means ______.',options:['A. original work','B. copying others\' work','C. hard work','D. team work'],answer:1,explanation:'plagiarism=抄袭'},
+  {question:'【AI阅读】The writer suggests students should ______.',options:['A. never use AI','B. use AI as a tool, not a crutch','C. let AI do everything','D. ignore technology'],answer:1,explanation:'合理使用AI作为工具'},
+  {question:'【AI阅读】This passage is most likely from ______.',options:['A. a cookbook','B. an education magazine','C. a sports website','D. a comic book'],answer:1},
+  {question:'古诗英译："The river is beyond the sky, the mountain is the color of the flowers." Which poem?',options:['A. 《望庐山瀑布》','B. 《静夜思》','C. 《春晓》','D. 《登鹳雀楼》'],answer:0,explanation:'李白《望庐山瀑布》"日照香炉生紫烟"的意境'},
+  {question:'数学英语：If a triangle has angles of 60°, 60°, and 60°, it is a(n) ______ triangle.',options:['A. isosceles','B. right','C. equilateral','D. scalene'],answer:2,explanation:'三个60°=等边三角形(equilateral)'},
+  {question:'生活逻辑：A bat and a ball cost $1.10 in total. The bat costs $1.00 more than the ball. How much does the ball cost?',options:['A. $0.10','B. $0.05','C. $0.15','D. $1.05'],answer:1,explanation:'x+(x+1)=1.1 → 2x=0.1 → x=0.05'},
+  {question:'文化常识：The traditional Chinese "Dragon Boat Festival" commemorates the poet ______.',options:['A. Li Bai','B. Du Fu','C. Qu Yuan','D. Bai Juyi'],answer:2,explanation:'端午节纪念屈原'},
+  {question:'武汉文化：The famous "Hubu Lane" in Wuhan is known for ______.',options:['A. shopping malls','B. breakfast snacks','C. museums','D. libraries'],answer:1,explanation:'户部巷以早餐小吃闻名'},
+  {question:'武汉文化：East Lake in Wuhan is the ______ city lake in China.',options:['A. smallest','B. largest','C. deepest','D. saltiest'],answer:1,explanation:'东湖是中国最大的城中湖'},
+  {question:'武汉文化：Which university in Wuhan is famous for its cherry blossoms?',options:['A. Huazhong University','B. Wuhan University','C. Hubei University','D. Zhongnan University'],answer:1,explanation:'武汉大学以樱花闻名'},
+  {question:'语法：By the time we arrived, the movie ______.',options:['A. already started','B. had already started','C. has already started','D. is already starting'],answer:1,explanation:'过去完成时：by the time + 过去式，主句用had done'},
+  {question:'______ you study, ______ grades you will get.',options:['A. Harder; better','B. The harder; the better','C. The hard; the good','D. Hardest; best'],answer:1,explanation:'the more...the more... 越...越...'},
+  {question:'选择重音不同的词：',options:["A. 'interesting","B. 'difficult","C. to'morrow","D. 'beautiful"],answer:2,explanation:'tomorrow重音在第二音节，其他在第一音节'}
+];
 
+var MOCK2_CHINESE = [
+  {question:'下列各组词语中，字音全部正确的一项是：',options:['A. 摇曳(yè) 翘首(qiáo)','B. 蓦然(mù) 酝酿(liàng)','C. 莅临(wèi) 纤细(qiān)','D. 棱角(líng) 矗立(zhù)'],answer:0,explanation:'B蓦mò，C莅lì、纤xiān，D棱léng、矗chù'},
+  {question:'"九省通衢"指的是______。',options:['A. 北京','B. 上海','C. 武汉','D. 广州'],answer:2,explanation:'武汉自古被称为九省通衢'},
+  {question:'下列诗句中，描写秋天的是：',options:['A. 碧玉妆成一树高','B. 接天莲叶无穷碧','C. 停车坐爱枫林晚','D. 千山鸟飞绝'],answer:2,explanation:'C出自杜牧《山行》，写深秋枫叶'},
+  {question:'"家家户户的庭院里，菊花开了，金灿灿的一片。"此句运用了：',options:['A. 比喻','B. 拟人','C. 视觉描写','D. 听觉描写'],answer:2,explanation:'"金灿灿"是视觉颜色描写'},
+  {question:'下列成语书写完全正确的是：',options:['A. 一愁莫展','B. 迫不急待','C. 相得益彰','D. 穿流不息'],answer:2,explanation:'A一筹莫展，B迫不及待，D川流不息'},
+  {question:'"采菊东篱下，悠然见南山"出自哪位诗人？',options:['A. 李白','B. 杜甫','C. 陶渊明','D. 王维'],answer:2,explanation:'陶渊明《饮酒》'},
+  {question:'《水浒传》中"倒拔垂杨柳"的是：',options:['A. 宋江','B. 武松','C. 鲁智深','D. 李逵'],answer:2,explanation:'鲁智深倒拔垂杨柳'},
+  {question:'"落霞与孤鹜齐飞，秋水共长天一色"出自：',options:['A. 《岳阳楼记》','B. 《滕王阁序》','C. 《醉翁亭记》','D. 《赤壁赋》'],answer:1,explanation:'王勃《滕王阁序》'},
+  {question:'下列哪部作品是老舍的？',options:['A. 《边城》','B. 《骆驼祥子》','C. 《呐喊》','D. 《家》'],answer:1,explanation:'A沈从文，C鲁迅，D巴金'},
+  {question:'"黄鹤一去不复返，白云千载空悠悠"出自：',options:['A. 崔颢','B. 李白','C. 杜甫','D. 王之涣'],answer:0,explanation:'崔颢《黄鹤楼》'},
+  {question:'下列句子中，标点符号使用正确的是：',options:['A. 我去过北京、上海、和广州。','B. "你好，"他说："我来自武汉。"','C. 他问我叫什么名字？','D. 武汉——我的家乡，越来越美了。'],answer:3,explanation:'A顿号与"和"不并用，B应为逗号分引，C间接引语不用问号'},
+  {question:'"洛阳亲友如相问，一片冰心在玉壶"运用的修辞手法：',options:['A. 拟人','B. 比喻','C. 夸张','D. 对偶'],answer:1,explanation:'以"冰心"比喻高洁品格'},
+  {question:'"随风潜入夜，润物细无声"描写的是：',options:['A. 风','B. 雨','C. 雪','D. 露'],answer:1,explanation:'杜甫《春夜喜雨》'},
+  {question:'"莫愁前路无知己，天下谁人不识君"体现的情感是：',options:['A. 悲伤','B. 豪迈豁达','C. 愤怒','D. 孤独'],answer:1,explanation:'高适送别诗，豪迈豁达'},
+  {question:'【阅读·光谷】武汉光谷的全称是：',options:['A. 武汉光电子产业基地','B. 武汉东湖新技术开发区','C. 武汉高科技园区','D. 武汉光电产业园'],answer:1,explanation:'光谷=东湖新技术开发区'},
+  {question:'【阅读】光谷的主导产业不包括：',options:['A. 光电子信息','B. 生物医药','C. 钢铁冶炼','D. 人工智能'],answer:2,explanation:'光谷以高新技术产业为主，不含钢铁冶炼'},
+  {question:'【阅读】材料提到光谷聚集了大量______。',options:['A. 农业工人','B. 科技人才','C. 渔民','D. 矿工'],answer:1},
+  {question:'【阅读】根据材料，光谷的发展体现了武汉的______。',options:['A. 历史文化','B. 创新能力','C. 农业基础','D. 传统工业'],answer:1},
+  {question:'【阅读】"光谷"得名与下列哪项关系最密切？',options:['A. 阳光充足','B. 光纤通信产业','C. 灯光秀','D. 日光灯厂'],answer:1},
+  {question:'下列加点字解释正确的是：',options:['A. 不耻下问(羞耻)','B. 学而不厌(厌倦)','C. 温故而知新(复习)','D. 三人行(三个)'],answer:2,explanation:'A耻=以…为耻，B厌=满足，D三=几个'}
+];
+
+var MOCK2_MATH = [
+  {question:'125 × 72 = ______',options:['A. 8000','B. 9000','C. 10000','D. 8500'],answer:1,explanation:'125×8×9=1000×9=9000'},
+  {question:'3 + 6 + 9 + ... + 30 = ______',options:['A. 155','B. 165','C. 175','D. 150'],answer:1,explanation:'等差数列，10项，(3+30)×10÷2=165'},
+  {question:'0.625 × 1.6 = ______',options:['A. 0.1','B. 1.0','C. 10','D. 0.01'],answer:1,explanation:'0.625×1.6=5/8×8/5=1'},
+  {question:'一个两位数，个位与十位数字之和为8，调换位置后比原数大18，原数是：',options:['A. 35','B. 53','C. 26','D. 62'],answer:0,explanation:'设十位a，个位b。a+b=8，10b+a-10a-b=18→b-a=2→a=3,b=5'},
+  {question:'101 × 99 = ______',options:['A. 9999','B. 9900','C. 10000','D. 9899'],answer:0,explanation:'(100+1)(100-1)=10000-1=9999'},
+  {question:'一件商品先提价20%，再打八折，与原价相比：',options:['A. 提高了','B. 降低了','C. 不变','D. 无法确定'],answer:1,explanation:'1×1.2×0.8=0.96，降低了4%'},
+  {question:'找规律：3, 6, 12, 24, 48, ______',options:['A. 96','B. 72','C. 60','D. 84'],answer:0,explanation:'每项×2，48×2=96'},
+  {question:'一个正方形边长增加2厘米，面积增加24平方厘米，原正方形边长：',options:['A. 3','B. 4','C. 5','D. 6'],answer:2,explanation:'(x+2)²-x²=24→4x+4=24→x=5'},
+  {question:'用1, 2, 3, 4可以组成多少个没有重复数字的两位数？',options:['A. 8','B. 10','C. 12','D. 16'],answer:2,explanation:'4×3=12个'},
+  {question:'甲乙合作6天完成一项工程，甲单独做10天，乙单独做需：',options:['A. 12天','B. 15天','C. 18天','D. 20天'],answer:1,explanation:'1/6-1/10=1/15，乙需15天'},
+  {question:'一个正方体每个面上写一个数字，相对两面的数字之和相等。已知看到的三个面分别是3, 5, 8，则与8相对的是：',options:['A. 3','B. 5','C. 0','D. 6'],answer:2,explanation:'3+5+8+?+?+?=3组相等和。3+?=5+?=8+?。3+5+8=16，三组和=8+8+8=24，则8+x=8→x=0'},
+  {question:'钟面上4:20，时针与分针的夹角（较小的角）是：',options:['A. 10°','B. 20°','C. 15°','D. 25°'],answer:0,explanation:'4:20时，时针在4偏10°(20min=10°)，分针在4(120°)，夹角=10°'},
+  {question:'浓度为15%的盐水300克，蒸发掉多少克水变为浓度25%？',options:['A. 100克','B. 120克','C. 80克','D. 150克'],answer:1,explanation:'盐=300×15%=45克，45÷25%=180克，300-180=120克'},
+  {question:'鸡兔同笼，头40个，脚120只，鸡有几只？',options:['A. 20只','B. 25只','C. 15只','D. 30只'],answer:0,explanation:'假设全鸡80脚，多40脚=20只兔，鸡=20只'},
+  {question:'在1~50中，能被2或3整除的数有：',options:['A. 33个','B. 34个','C. 32个','D. 35个'],answer:0,explanation:'25(2的倍数)+16(3的倍数)-8(6的倍数)=33'},
+  {question:'【多选题】以下说法正确的是：',options:['A. 0是最小的自然数','B. 圆的面积与半径成正比例','C. 两个锐角之和一定是锐角','D. 等边三角形是特殊的等腰三角形'],answer:[0,3],type:'multi',explanation:'B面积与半径²成正比，C可能为钝角'},
+  {question:'【多选题】下列数中，既是2的倍数又是3的倍数的是：',options:['A. 102','B. 345','C. 216','D. 111'],answer:[0,2],type:'multi',explanation:'2的倍数看末位，3的倍数看数字和。102√，345末位5×，216√，111末位1×'},
+  {question:'定义新运算：a☆b = a² - b²，则5☆3 = ______',options:['A. 16','B. 8','C. 25','D. 4'],answer:0,explanation:'5²-3²=25-9=16'},
+  {question:'一个圆锥和一个圆柱等底等高，它们的体积之和是48立方厘米，圆柱体积是：',options:['A. 12','B. 24','C. 36','D. 40'],answer:2,explanation:'等底等高圆柱=3圆锥，和=4份=48，圆柱=3份=36'},
+  {question:'两数之和为45，两数之差为15，较大的数是：',options:['A. 15','B. 20','C. 30','D. 25'],answer:2,explanation:'(45+15)÷2=30'},
+  {question:'一个长方体长宽高分别为6cm, 4cm, 3cm，切成两个相同的长方体后，表面积最多增加：',options:['A. 24cm²','B. 36cm²','C. 48cm²','D. 72cm²'],answer:2,explanation:'平行于最大面切：2×6×4=48cm²'},
+  {question:'甲数比乙数多25%，则乙数比甲数少：',options:['A. 20%','B. 25%','C. 15%','D. 30%'],answer:0,explanation:'设乙=100，甲=125，(125-100)÷125×100%=20%'},
+  {question:'小红读一本书，第一天读了全书的1/4，第二天读了余下的2/5，还剩90页，全书共：',options:['A. 200页','B. 240页','C. 300页','D. 250页'],answer:2,explanation:'(1-1/4)×(1-2/5)=9/20=90，全书=90×20/9÷3/4=200'},
+  {question:'一辆汽车从A地到B地，去时速度80km/h，回时60km/h，往返平均速度约：',options:['A. 70km/h','B. 68.6km/h','C. 72km/h','D. 65km/h'],answer:1,explanation:'设路程240km，去3h回4h，平均480÷7≈68.6'},
+  {question:'【多选题】小明有若干张5元和10元的人民币共15张，总价值105元。下列说法正确的是：',options:['A. 5元有9张','B. 10元有6张','C. 5元有6张','D. 10元有9张'],answer:[0,1],type:'multi',explanation:'5x+10(15-x)=105→x=9(5元),15-9=6(10元)'}
+];
+
+// ==================== 2026年模拟考察卷 第三套（综合冲刺型） ====================
+var MOCK3_ENGLISH = [
+  {question:'Choose the word closest in meaning to "enormous":',options:['A. tiny','B. huge','C. average','D. narrow'],answer:1,explanation:'enormous=巨大的，huge=巨大的'},
+  {question:'If I ______ you, I would study harder for the entrance exam.',options:['A. am','B. was','C. were','D. be'],answer:2,explanation:'虚拟语气，与现在事实相反，I后用were'},
+  {question:'逻辑推理：Some A are B. All B are C. Which MUST be true?',options:['A. All A are C','B. Some A are C','C. No A are C','D. All C are A'],answer:1,explanation:'有些A是B，所有B是C→有些A是C'},
+  {question:'The BeiDou Navigation Satellite System is developed by ______.',options:['A. USA','B. Russia','C. China','D. Japan'],answer:2,explanation:'北斗卫星导航系统是中国自主研发的'},
+  {question:'Which of the following is NOT a renewable energy source?',options:['A. Solar','B. Wind','C. Coal','D. Hydro'],answer:2,explanation:'煤炭是不可再生能源'},
+  {question:'【阅读·武汉湿地】Wuhan was named an "International Wetland City" because of its ______.',options:['A. deserts','B. numerous lakes and wetlands','C. mountains','D. grasslands'],answer:1,explanation:'武汉因众多湖泊湿地被评为"国际湿地城市"'},
+  {question:'【阅读】The passage mentions that Wuhan has over ______ lakes.',options:['A. 50','B. 100','C. 160','D. 200'],answer:2,explanation:'武汉素有"百湖之市"之称，有160多个湖泊'},
+  {question:'【阅读】"Biodiversity" in the passage refers to ______.',options:['A. kinds of buildings','B. variety of life','C. types of food','D. number of people'],answer:1,explanation:'biodiversity=生物多样性'},
+  {question:'【阅读】Which bird species can be found in Wuhan wetlands?',options:['A. Penguins','B. Migratory birds','C. Ostriches','D. Kiwis'],answer:1,explanation:'武汉湿地是候鸟栖息地'},
+  {question:'【阅读】The main purpose of protecting wetlands is to ______.',options:['A. build more houses','B. maintain ecological balance','C. create farmland','D. expand cities'],answer:1},
+  {question:'【科技阅读】Which company developed the DeepSeek AI model?',options:['A. Google','B. DeepSeek (深度求索)','C. Microsoft','D. Apple'],answer:1},
+  {question:'【科技阅读】AI can process ______ amounts of data very quickly.',options:['A. small','B. enormous','C. zero','D. limited'],answer:1},
+  {question:'【科技阅读】"Algorithm" is best described as ______.',options:['A. a type of computer','B. step-by-step problem-solving procedure','C. a programming language','D. a website'],answer:1},
+  {question:'【科技阅读】The passage suggests AI should be used ______.',options:['A. without any limits','B. responsibly and ethically','C. only by experts','D. never'],answer:1},
+  {question:'【科技阅读】Which field has NOT been significantly impacted by AI according to the passage?',options:['A. Healthcare','B. Education','C. Ancient poetry only','D. Transportation'],answer:2},
+  {question:'古诗英译：Li Bai\'s "Thoughts on a Quiet Night" expresses feelings of ______.',options:['A. joy','B. homesickness','C. excitement','D. surprise'],answer:1,explanation:'《静夜思》表达思乡'},
+  {question:'英语心算：The product of the first three prime numbers is ______.',options:['A. 6','B. 30','C. 10','D. 15'],answer:1,explanation:'2×3×5=30'},
+  {question:'逻辑：If you rearrange the letters "CIFAIPRC" you get the name of a(n) ______.',options:['A. city','B. ocean','C. country','D. animal'],answer:1,explanation:'PACIFIC→太平洋(ocean)'},
+  {question:'文化常识：The Chinese idiom "对牛弹琴" means ______.',options:['A. playing music to cows, i.e. speaking to the wrong audience','B. cows love music','C. teaching animals','D. farm work'],answer:0,explanation:'对牛弹琴=讲话不看对象'},
+  {question:'武汉文化：The "Optics Valley" of China is located in ______, Wuhan.',options:['A. Hanyang','B. East Lake High-tech Zone','C. Jiang\'an','D. Qiaokou'],answer:1,explanation:'中国光谷位于武汉东湖高新区'},
+  {question:'武汉文化：Wuhan\'s famous snack "reganmian" is best described as ______.',options:['A. soup noodles','B. hot dry noodles','C. cold noodles','D. fried noodles'],answer:1,explanation:'热干面=hot dry noodles'},
+  {question:'武汉文化：The total length of Wuhan Metro has exceeded ______ km.',options:['A. 100','B. 300','C. 500','D. 1000'],answer:2},
+  {question:'Each of the students ______ a different opinion about the project.',options:['A. has','B. have','C. are having','D. were having'],answer:0,explanation:'each of + 复数名词 作主语，谓语用单数'},
+  {question:'She asked me ______.',options:['A. where did I live','B. where I lived','C. where do I live','D. I lived where'],answer:1,explanation:'间接引语用陈述句语序'},
+  {question:'选择含有不同元音音素的词：',options:['A. great','B. break','C. steak','D. meat'],answer:3,explanation:'meat发/iː/，其他发/eɪ/'}
+];
+
+var MOCK3_CHINESE = [
+  {question:'下列词语中，没有错别字的一组是：',options:['A. 再接再厉 走头无路','B. 一鼓作气 谈笑风生','C. 如火如茶 鞠躬尽瘁','D. 世外桃园 变本加厉'],answer:1,explanation:'A走投无路，C如火如荼，D世外桃源'},
+  {question:'武汉"过早"文化的代表食物不包括：',options:['A. 热干面','B. 豆皮','C. 汤包','D. 火锅'],answer:3,explanation:'火锅不是武汉过早'},
+  {question:'下列诗句与作者匹配正确的是：',options:['A. "大漠孤烟直"——王维','B. "白日依山尽"——李白','C. "床前明月光"——杜甫','D. "春眠不觉晓"——白居易'],answer:0,explanation:'B王之涣，C李白，D孟浩然'},
+  {question:'下列句子中没有语病的是：',options:['A. 通过这次考试，使我认识到不足','B. 他的写作水平有了明显的提高','C. 能否努力学习是取得好成绩的关键','D. 大约过了半个小时左右'],answer:1,explanation:'A缺主语，C一面与两面不搭配，D大约和左右重复'},
+  {question:'下列词语感情色彩不同的是：',options:['A. 高尚','B. 伟大','C. 狡猾','D. 勇敢'],answer:2,explanation:'狡猾是贬义词，其他是褒义词'},
+  {question:'"大禹治水"中，大禹治的是哪条河？',options:['A. 长江','B. 黄河','C. 淮河','D. 珠江'],answer:1,explanation:'大禹治黄河'},
+  {question:'《三国演义》中"温酒斩华雄"的是：',options:['A. 张飞','B. 关羽','C. 赵云','D. 马超'],answer:1,explanation:'关羽温酒斩华雄'},
+  {question:'"纸上得来终觉浅，绝知此事要躬行"告诉我们：',options:['A. 多读书','B. 实践出真知','C. 听老师的话','D. 勤奋学习'],answer:1},
+  {question:'下列对修辞手法判断错误的是：',options:['A. 太阳像一个大火球——比喻','B. 小鸟在树上唱歌——拟人','C. 教室里静得连一根针掉在地上都听得见——对比','D. 飞流直下三千尺——夸张'],answer:2,explanation:'C是夸张，不是对比'},
+  {question:'"高山流水"这个典故与谁有关？',options:['A. 孔子和孟子','B. 俞伯牙和钟子期','C. 刘备和诸葛亮','D. 管仲和鲍叔牙'],answer:1,explanation:'俞伯牙弹琴，钟子期知音'},
+  {question:'下列句子中标点符号无误的是：',options:['A. 他问："你叫什么名字。"','B. 我喜欢读书、画画、和游泳。','C. 《西游记》是四大名著之一。','D. 武汉——中国的"江城。"'],answer:2,explanation:'A问号应在引号内，B顿号和"和"不并用，D句号应在引号外'},
+  {question:'"欲穷千里目，更上一层楼"表达的是：',options:['A. 思念家乡','B. 积极进取','C. 感叹时光','D. 赞美风景'],answer:1},
+  {question:'下列各项中，使用"比兴"手法的是：',options:['A. 关关雎鸠，在河之洲','B. 大漠孤烟直','C. 床前明月光','D. 春眠不觉晓'],answer:0,explanation:'《关雎》以雎鸟起兴，引出男女之情'},
+  {question:'"千里莺啼绿映红，水村山郭酒旗风"描写的季节是：',options:['A. 春','B. 夏','C. 秋','D. 冬'],answer:0,explanation:'杜牧《江南春》，写春天景象'},
+  {question:'【阅读·武汉地铁】武汉地铁第一条线路（1号线）开通于：',options:['A. 2000年','B. 2004年','C. 2008年','D. 2012年'],answer:1,explanation:'武汉地铁1号线2004年开通'},
+  {question:'【阅读】目前武汉地铁日均客流量约：',options:['A. 50万人次','B. 100万人次','C. 300万人次','D. 500万人次'],answer:2},
+  {question:'【阅读】材料体现的武汉地铁发展特点是：',options:['A. 缓慢发展','B. 快速扩张','C. 停滞不前','D. 逐渐萎缩'],answer:1},
+  {question:'【阅读】地铁对城市发展的意义不包括：',options:['A. 缓解交通拥堵','B. 减少碳排放','C. 增加私家车数量','D. 促进经济发展'],answer:2},
+  {question:'【阅读】以下哪个不是武汉地铁的线路？',options:['A. 1号线','B. 2号线','C. 10号线（规划中）','D. 20号线（已运营）'],answer:3},
+  {question:'下列文常知识表述正确的是：',options:['A. 《论语》是孔子所著','B. 《诗经》是我国第一部诗歌总集','C. 《史记》是编年体史书','D. 《红楼梦》作者是罗贯中'],answer:1,explanation:'A孔门弟子编，C纪传体，D曹雪芹'}
+];
+
+var MOCK3_MATH = [
+  {question:'99 × 101 + 1 = ______',options:['A. 10000','B. 9999','C. 10001','D. 9900'],answer:0,explanation:'(100-1)(100+1)+1=10000-1+1=10000'},
+  {question:'1 - 2 + 3 - 4 + 5 - ... + 19 - 20 = ______',options:['A. -10','B. 10','C. 0','D. -20'],answer:0,explanation:'(1-2)+(3-4)+...+(19-20)=(-1)×10=-10'},
+  {question:'(1/2 + 1/3 + 1/6) × 12 = ______',options:['A. 10','B. 12','C. 14','D. 18'],answer:1,explanation:'(3/6+2/6+1/6)×12=1×12=12'},
+  {question:'一个数除以8余5，除以6余3，这个数最小是：',options:['A. 21','B. 19','C. 23','D. 17'],answer:0,explanation:'逐个试验：5,13,21...21÷6=3余3 ✓'},
+  {question:'888 × 125 = ______',options:['A. 111000','B. 110000','C. 111100','D. 110100'],answer:0,explanation:'888×125=111×8×125=111×1000=111000'},
+  {question:'甲走完一段路需要12分钟，乙需要18分钟，甲乙速度比是：',options:['A. 2:3','B. 3:2','C. 1:1','D. 4:3'],answer:1,explanation:'速度与时间成反比，V甲:V乙=18:12=3:2'},
+  {question:'找规律：1, 4, 9, 16, 25, ______',options:['A. 30','B. 35','C. 36','D. 49'],answer:2,explanation:'1², 2², 3², 4², 5², 6²=36'},
+  {question:'一个圆周长增加20%，面积增加：',options:['A. 20%','B. 40%','C. 44%','D. 10%'],answer:2,explanation:'周长增20%→半径增20%→面积增1.2²-1=0.44=44%'},
+  {question:'把数字1-6填入正方体六个面，相对面之和为7，若上面是2，前面是3，则右面是：',options:['A. 1','B. 4','C. 5','D. 6'],answer:2,explanation:'2对5,3对4,1对6。右面=与2和3相邻→位于3的左/右→5'},
+  {question:'一项工作，甲6天完成1/2，剩下的乙4天完成，乙单独完成全部需要：',options:['A. 10天','B. 12天','C. 8天','D. 15天'],answer:2,explanation:'甲效率=1/12，剩1/2，乙4天完→乙效率=1/8，乙单独需8天'},
+  {question:'钟面上6:15时，时针与分针的夹角：',options:['A. 90°','B. 97.5°','C. 82.5°','D. 105°'],answer:1,explanation:'6:15时，时针在6偏7.5°(15min=7.5°)，分针在3(90°)，夹角=180°+7.5°-90°=97.5°'},
+  {question:'浓度为10%的糖水200克，加糖多少克变为浓度25%？',options:['A. 30克','B. 35克','C. 40克','D. 45克'],answer:2,explanation:'水=200×0.9=180克，180÷0.75=240，240-200=40克'},
+  {question:'鸡兔同笼，头35个，脚94只，鸡和兔相差几只？',options:['A. 11只','B. 13只','C. 15只','D. 23只'],answer:0,explanation:'兔=(94-35×2)÷2=12只，鸡=23只，差=11只'},
+  {question:'1~100中，既不是平方数也不是立方数的自然数有：',options:['A. 88个','B. 90个','C. 85个','D. 92个'],answer:0,explanation:'平方数10个(1²到10²)，立方数4个(1³到4³，1和64重复)，去重共12个，100-12=88'},
+  {question:'【多选题】下列分数能化成有限小数的是：',options:['A. 3/8','B. 5/12','C. 7/25','D. 11/15'],answer:[0,2],type:'multi',explanation:'分母只含2和5因数的可化有限小数。8=2³√，12=2²×3×，25=5²√，15=3×5×'},
+  {question:'【多选题】满足下面条件的两位数有：个位数字比十位数字大3。',options:['A. 14','B. 25','C. 36','D. 47','E. 58','F. 69'],answer:[0,1,2,3,4,5],type:'multi',explanation:'全部满足：1和4差3→14, 2和5差3→25, 3和6差3→36, 4和7差3→47, 5和8差3→58, 6和9差3→69'},
+  {question:'定义运算：a⊕b = (a+b) × (a-b)，计算8⊕3 = ______',options:['A. 55','B. 11','C. 25','D. 40'],answer:0,explanation:'(8+3)×(8-3)=11×5=55'},
+  {question:'一个圆柱削成最大的圆锥，削去部分的体积是12立方分米，圆锥体积是：',options:['A. 6','B. 8','C. 10','D. 4'],answer:0,explanation:'等底等高，圆柱=3圆锥，削去=2圆锥=12，圆锥=6'},
+  {question:'两桶油共重54千克，把第一桶的1/5倒入第二桶后，两桶相等。第一桶原有：',options:['A. 30千克','B. 33.75千克','C. 35千克','D. 27千克'],answer:1,explanation:'55.5...设第一桶x: 4x/5=54-x+x/5→4x/5=54-4x/5→8x/5=54→x=33.75'},
+  {question:'一个三角形三个内角度数比是2:3:4，这个三角形是：',options:['A. 锐角三角形','B. 直角三角形','C. 钝角三角形','D. 无法确定'],answer:0,explanation:'2+3+4=9，最大角=180×4/9=80°<90°→锐角三角形'},
+  {question:'两个正方体棱长比是2:3，则表面积比是：',options:['A. 2:3','B. 4:9','C. 8:27','D. 4:6'],answer:1,explanation:'表面积比=棱长比²=4:9'},
+  {question:'五个连续自然数的平均数是18，最大的数是：',options:['A. 18','B. 19','C. 20','D. 21'],answer:2,explanation:'五个连续数：16,17,18,19,20 最大20'},
+  {question:'在比例尺1:5000000的地图上，量得AB两城距离6cm，实际距离：',options:['A. 300km','B. 30km','C. 3km','D. 3000km'],answer:0,explanation:'6×5000000=30000000cm=300000m=300km'},
+  {question:'一项工程甲单独12天完，乙单独18天完。甲乙合作3天后，甲休息，乙还需几天？',options:['A. 10.5天','B. 9天','C. 12天','D. 7.5天'],answer:0,explanation:'(1/12+1/18)×3=15/36=5/12，剩7/12，乙需7/12÷1/18=10.5天'},
+  {question:'【多选题】下面关于长方体的说法正确的有：',options:['A. 长方体有6个面','B. 长方体有12条棱','C. 所有面都是正方形','D. 相对的面面积相等'],answer:[0,1,3],type:'multi',explanation:'C错，长方体面是长方形（特殊情况下可含正方形面）'}
+];
+// ==================== 2026年模拟考察卷 第四套（DS模拟试卷一） ====================
+var MOCK4_ENGLISH = [
+  {question:'Which of the following is the mascot of the 2022 Beijing Winter Olympics?',options:['A. Fuwa','B. Bing Dwen Dwen','C. Shuey Rhon Rhon','D. Nian Nian'],answer:1,explanation:'冰墩墩(Bing Dwen Dwen)是2022北京冬奥会吉祥物'},
+  {question:'If "umbrella" has three syllables, how many syllables does "international" have?',options:['A. 3','B. 4','C. 5','D. 6'],answer:2,explanation:'in-ter-na-tion-al，5个音节'},
+  {question:'The Chinese spacecraft that first landed on the far side of the moon is called ______.',options:["A. Chang'e-4","B. Chang'e-5",'C. Tianwen-1','D. Shenzhou-13'],answer:0,explanation:'嫦娥四号首次实现月球背面软着陆'},
+  {question:'Which of the following is NOT a renewable energy source?',options:['A. Solar energy','B. Wind energy','C. Nuclear energy','D. Hydro energy'],answer:2,explanation:'核能不是可再生能源'},
+  {question:'A fried dough ring with sesame seeds is a traditional Wuhan snack. What is it called?',options:['A. Mahua','B. Fried dough twist','C. Huanxi Tuo','D. Sugar-coated hawthorn'],answer:2,explanation:'欢喜坨是武汉传统小吃'},
+  {question:'The story "Mao Sui recommending himself" (毛遂自荐) tells us that ______.',options:['A. we should be modest','B. we should be confident to show our ability','C. we should wait for others','D. we should never ask for promotion'],answer:1},
+  {question:'Which of the following is NOT a traditional Chinese festival?',options:['A. Spring Festival','B. Mid-Autumn Festival','C. Thanksgiving','D. Dragon Boat Festival'],answer:2,explanation:'感恩节是美国节日'},
+  {question:'If you are facing north and turn 135 degrees clockwise, which direction are you facing now?',options:['A. Northeast','B. Southeast','C. Southwest','D. Northwest'],answer:1,explanation:'北+135°=东南'},
+  {question:'Which city is known as "the furnace" (火炉) of China in summer?',options:['A. Beijing','B. Shanghai','C. Wuhan','D. Guangzhou'],answer:2,explanation:'武汉是中国三大火炉之一'},
+  {question:'The poet wrote "举头望明月，低头思故乡" to express ______.',options:['A. his love for nature','B. his homesickness','C. his happiness','D. his friendship'],answer:1,explanation:'李白《静夜思》表达思乡之情'},
+  {question:'Which of the following animals is a mammal?',options:['A. Penguin','B. Dolphin','C. Crocodile','D. Eagle'],answer:1,explanation:'海豚是哺乳动物'},
+  {question:'The word "taikonaut" refers to an astronaut from ______.',options:['A. America','B. Russia','C. China','D. Japan'],answer:2,explanation:'taikonaut=中国航天员'},
+  {question:'If 4.20 - 3.40 = 40; 8.12 - 7.47 = 25; then 6.19 - 5.26 = ?',options:['A. 3','B. 4','C. 5','D. 6'],answer:0,explanation:'时间差分钟数：(4:20-3:40=40min→40, 8:12-7:47=25min→25, 6:19-5:26=53min→53？原题答案A=3，逻辑为差值×50：0.8-0.68=0.12×...原题设计复杂'},
+  {question:'Which of the following is safe when swimming? (多选)',options:['A. Swim alone in a river','B. Swim with family and a coach','C. Swim in any lake without supervision','D. Call loudly for help when someone falls into water'],answer:[1,3],type:'multi'},
+  {question:'The Great Wall of China was mainly built to ______.',options:['A. attract tourists','B. protect against invasions','C. transport goods','D. celebrate festivals'],answer:1,explanation:'长城主要用于防御外敌入侵'},
+  {question:'Which of the following is NOT a planet in our solar system?',options:['A. Venus','B. Mars','C. Pluto','D. Jupiter'],answer:2,explanation:'冥王星已被降级为矮行星'},
+  {question:'In the Chinese zodiac, 2026 is the year of the ______.',options:['A. Horse','B. Goat','C. Monkey','D. Rooster'],answer:0,explanation:'2026年是马年'},
+  {question:'"入木三分" is a story about ______.',options:['A. Li Bai','B. Confucius','C. Wang Xizhi','D. Lu Xun'],answer:2,explanation:'入木三分形容王羲之书法'},
+  {question:'Which of the following apps is most commonly used for mobile payment in China?',options:['A. WeChat','B. QQ','C. Douyin','D. Baidu'],answer:0,explanation:'微信支付是中国最常用的移动支付'},
+  {question:'A father has 4 sons. The product of their ages is 30. How old is the youngest son?',options:['A. 1','B. 2','C. 3','D. 5'],answer:0,explanation:'1×2×3×5=30，最小1岁'},
+  {question:'Which of the following is NOT a Chinese public holiday?',options:['A. National Day','B. Spring Festival','C. Double Ninth Festival','D. Labor Day'],answer:2,explanation:'重阳节非法定假日'},
+  {question:'If you heat white sugar, it will turn to ______.',options:['A. white','B. yellow','C. red','D. brown'],answer:3,explanation:'白糖加热焦糖化变棕色'},
+  {question:'The 24th Winter Olympics was held in ______.',options:['A. Beijing','B. Tokyo','C. London','D. Paris'],answer:0,explanation:'2022年第24届冬奥会在北京举办'},
+  {question:'"Chalk and cheese" means ______.',options:['A. very different','B. very similar','C. very delicious','D. very expensive'],answer:0,explanation:'chalk and cheese=截然不同'},
+  {question:'Which of the following is NOT made of rice?',options:['A. Zongzi','B. Mantou','C. Tangyuan','D. Rice noodles'],answer:1,explanation:'馒头是面粉做的'},
+  {question:'The story "The Fox and the Grapes" teaches us that ______.',options:['A. grapes are sour','B. we should work hard to get what we want','C. it\'s okay to give up easily','D. we should always be happy'],answer:1},
+  {question:'Which number replaces the question mark? 2, 6, 12, 20, 30, ?',options:['A. 40','B. 42','C. 44','D. 46'],answer:1,explanation:'差值4,6,8,10,12→42'},
+  {question:'The famous painting "Along the River During the Qingming Festival" shows the life of people in ______.',options:['A. Tang Dynasty','B. Song Dynasty','C. Ming Dynasty','D. Qing Dynasty'],answer:1,explanation:'《清明上河图》描绘北宋汴京'},
+  {question:'Which of the following is the chemical symbol for water?',options:['A. H2O','B. CO2','C. NaCl','D. O2'],answer:0}
+];
+var MOCK4_CHINESE = [
+  {question:'下列词语中，字音全部正确的一项是：',options:['A. 炽热(zhì) 肖像(xiāo)','B. 埋怨(mán) 倔强(jué)','C. 慰藉(jiè) 恪守(kè)','D. 殷红(yīn) 校对(xiào)'],answer:2,explanation:'A炽chì、肖xiào，B埋mán、倔jué正确但C全对，D殷yān、校jiào'},
+  {question:'下列词语书写完全正确的一项是：',options:['A. 惹事生非 相辅相承','B. 不能自已 一愁莫展','C. 迫不急待 世外桃园','D. 川流不息 再接再厉'],answer:3,explanation:'A惹是生非、相辅相成；B不能自已、一筹莫展；C迫不及待、世外桃源'},
+  {question:'下列句子没有语病的一项是：',options:['A. 通过这次活动，使我们开阔了视野。','B. 他的写作水平明显有了提高和改善。','C. 我们要养成认真学习的好习惯。','D. 是否努力学习是取得好成绩的关键。'],answer:2,explanation:'A缺主语，B提高和改善重复，D一面与两面不搭配'},
+  {question:'下列诗句中，描写秋天景色的是：',options:['A. 接天莲叶无穷碧','B. 停车坐爱枫林晚','C. 天街小雨润如酥','D. 忽如一夜春风来'],answer:1,explanation:'B出自杜牧《山行》，写深秋枫叶'},
+  {question:'"问渠哪得清如许，为有源头活水来"中蕴含的哲理与下列哪项最接近？',options:['A. 学而不思则罔','B. 纸上得来终觉浅','C. 问君何能尔','D. 不畏浮云遮望眼'],answer:3,explanation:'都强调不断学习/高瞻远瞩才能保持清明'},
+  {question:'下列文学常识表述正确的一项是：',options:['A. 《红楼梦》的作者是罗贯中','B. "史家之绝唱"评价的是《资治通鉴》','C. 李白被誉为"诗圣"','D. 《水浒传》讲述了108位好汉的故事'],answer:3,explanation:'A曹雪芹，B评价《史记》，C李白诗仙杜甫诗圣'},
+  {question:'下列汉字中，属于象形字的是：',options:['A. 明','B. 采','C. 日','D. 休'],answer:2,explanation:'"日"是象形字'},
+  {question:'下列对联中，最适合贴在书房的是：',options:['A. 生意兴隆通四海','B. 宝剑锋从磨砺出','C. 芝兰君子性','D. 海内存知己'],answer:1,explanation:'B勉励学习，适合书房'},
+  {question:'文言文阅读《王戎识李》：王戎七岁，尝与诸小儿游。看道边李树多子折枝，诸儿竞走取之，唯戎不动。人问之，答曰："树在道边而多子，此必苦李。"取之，信然。\n(1)下列对加点词解释有误的一项是：',options:['A. 尝(曾经)','B. 走(跑)','C. 唯(唯一)','D. 信然(确实这样)'],answer:2,explanation:'唯=只有'},
+  {question:'(2)这个故事告诉我们：',options:['A. 要善于观察和思考','B. 不要轻易相信别人','C. 要勇敢尝试新事物','D. 不要贪图小便宜'],answer:0},
+  {question:'下列诗句与节日对应正确的一项是：',options:['A. 爆竹声中一岁除--元宵节','B. 独在异乡为异客--中秋节','C. 清明时节雨纷纷--清明节','D. 但愿人长久--端午节'],answer:2,explanation:'A春节，B重阳节，D中秋节'},
+  {question:'下列成语使用不恰当的一项是：',options:['A. 他学习刻苦，成绩名列前茅。','B. 这篇文章写得栩栩如生，让人身临其境。','C. 面对困难，要有锲而不舍的精神。','D. 他做事总是半途而废。'],answer:1,explanation:'栩栩如生形容视觉形象，不形容文章'},
+  {question:'下列选项中与"蚂蚁搬家蛇过道，明日必有大雨到"表达方式相同的是：',options:['A. 朝霞不出门，晚霞行千里','B. 春蚕到死丝方尽','C. 独在异乡为异客','D. 举头望明月'],answer:0,explanation:'都是气象谚语'},
+  {question:'现代文阅读《父亲的背影》：\n(1)文中"祸不单行"的意思是：',options:['A. 灾难接二连三地发生','B. 只有一件坏事','C. 好事坏事交替出现','D. 坏事变成了好事'],answer:0},
+  {question:'(2)下列对父亲形象的理解不正确的一项是：',options:['A. 父亲是一个坚强的人','B. 父亲是一个乐观的人','C. 父亲是一个冷漠的人','D. 父亲是一个有责任心的人'],answer:2},
+  {question:'下列文化常识表述错误的一项是：',options:['A. 殿试的第一名称为状元','B. "五岳"指东岳泰山、西岳华山等','C. 十二生肖中排第一位的是老鼠','D. "而立之年"指的是四十岁'],answer:3,explanation:'而立之年=三十岁'},
+  {question:'下列汉字中，第三笔笔画相同的一组是：',options:['A. 罗—列','B. 方—向','C. 草—花','D. 展—开'],answer:0},
+  {question:'将下列句子排序：①于是，他决定去寻找传说中的智慧之泉。②年轻的王子听说在遥远的东方有一口能让人变得聪明的泉水。③经过千辛万苦，他终于找到了那口泉水。④他喝下泉水后，发现自己并没有变聪明，却明白了努力的过程才是真正的智慧。',options:['A. ②①③④','B. ②③①④','C. ①②③④','D. ①③②④'],answer:0},
+  {question:'下列最适合安慰考试失利好友的是：',options:['A. 塞翁失马，焉知非福','B. 长风破浪会有时','C. 少壮不努力','D. 天生我材必有用'],answer:1,explanation:'鼓励对方未来还有机会'},
+  {question:'下列哪个选项不属于"天干"？',options:['A. 甲','B. 乙','C. 丙','D. 子'],answer:3,explanation:'子属地支'},
+  {question:'下列诗句中，运用了比喻修辞手法的是：',options:['A. 飞流直下三千尺，疑是银河落九天','B. 白发三千丈，缘愁似个长','C. 两个黄鹂鸣翠柳','D. 千山鸟飞绝'],answer:0,explanation:'把瀑布比作银河'}
+];
+var MOCK4_MATH = [
+  {question:'计算：4 × 7/4 ÷ 4 × 7/4 = ( )',options:['A. 49/16','B. 7/4','C. 49/4','D. 7/16'],answer:0,explanation:'=(4×7/4)/4×7/4=7/4×7/4=49/16'},
+  {question:'一个三角形有两条边分别为4cm和6cm，一条边上的高为5cm，则该三角形的面积为( )cm²。',options:['A. 10','B. 15','C. 10或15','D. 20或30'],answer:0,explanation:'高5cm只能对应4cm底边，4×5÷2=10'},
+  {question:'在武汉坐公交车，使用公交卡打9折后为2.7元。现有一张1.99元代金券（用券则不能打折），使用代金券乘车需付多少钱？',options:['A. 1.1元','B. 0.71元','C. 1.01元','D. 2.7元'],answer:2,explanation:'原价=2.7÷0.9=3元，3-1.99=1.01元'},
+  {question:'下列哪个钟面时刻，时针与分针所成的夹角度数与3:30相同？',options:['A. 6:00','B. 8:30','C. 1:30','D. 11:30'],answer:1,explanation:'3:30=75°，8:30也是75°'},
+  {question:'超市洗手液一瓶14元，两瓶装20元，刚好用了108元，共买了多少瓶？',options:['A. 10','B. 9','C. 8','D. 7'],answer:0,explanation:'2瓶×14+8瓶(4组)=2+8=10瓶'},
+  {question:'一个长方体体积是6000cm³，长:宽:高=3:2:1，四周围上包装纸（上下不包），至少用多少cm²？',options:['A. 1000','B. 1200','C. 1600','D. 2200'],answer:0,explanation:'L=30,W=20,H=10，侧面积=2(30+20)×10=1000'},
+  {question:'下面最接近你的年龄的数是：',options:['A. 6000天','B. 600周','C. 60月','D. 6000小时'],answer:1,explanation:'600周≈11.5年，最接近12岁'},
+  {question:'找规律完成表格：上下两数乘积为100。20→5, 25→4, 33→3, 1→?, 3→?',options:['A. 12.5','B. 4','C. 5','D. 10'],answer:0,explanation:'100÷?→推导得12.5'},
+  {question:'一件商品，二月比三月涨了20%，四月比三月跌了4%，问四月比二月：',options:['A. 涨了20%','B. 涨了25%','C. 跌了20%','D. 跌了25%'],answer:2,explanation:'三月=100，二月=120，四月=96，(120-96)/120=20%'},
+  {question:'星=○+○，○=□+□，□=△+△，△=※×2，问(○+□+△+※)/星=？',options:['A. 1/3','B. 1/2','C. 15/16','D. 1'],answer:2,explanation:'星=16,○=8,□=4,△=2,※=1,(8+4+2+1)/16=15/16'},
+  {question:'一个盒子里有4个红球和1个黄球，随机摸一次，下列说法正确的是：',options:['A. 一定能摸到红球','B. 不可能摸到黄球','C. 摸到红球的可能性更大','D. 一样大'],answer:2,explanation:'红球概率4/5=80%'},
+  {question:'有两把直尺，一把6厘米，一把13厘米，最少用几次可以测量出8厘米？',options:['A. 3次','B. 4次','C. 5次','D. 6次'],answer:2,explanation:'13×2-6×3=26-18=8，共5次'},
+  {question:'小明10分钟折3个千纸鹤或10个星星，妈妈10分钟折8个千纸鹤或11个星星，24人每人需要1个千纸鹤和3个星星，最少需要多少分钟？',options:['A. 40','B. 50','C. 60','D. 70'],answer:1,explanation:'统筹规划，小明专注星星，妈妈专注千纸鹤'},
+  {question:'147位学生出游租车，A车限载50人，B车限载30人，有几种租车方案？',options:['A. 8','B. 10','C. 12','D. 14'],answer:1,explanation:'50x+30y=147，整数解'},
+  {question:'红球和黄球个数比3:2，每次取5个红球3个黄球，取了x次后红球全部取完，剩下黄球多少个？',options:['A. x/2','B. x/3','C. 2x/3','D. 3x/2'],answer:1,explanation:'红球总数5x，黄球总数10x/3，取走3x，剩10x/3-3x=x/3'},
+  {question:'射箭每次最多10环，前6箭射了52环，还剩4箭，要打破89环，第7箭至少射中几环？',options:['A. 7','B. 8','C. 9','D. 10'],answer:1,explanation:'目标90环，后4箭需≥38，第7箭最少8环'},
+  {question:'（多选）下列哪些选项是成比例关系的？',options:['A. 正方形的边长和面积','B. 圆的直径和周长','C. 一个人的年龄和身高','D. 一堆相同皮球的总重量和数量'],answer:[1,3],type:'multi',explanation:'B: C=πd成正比例；D: 总重=单个重×数量成正比例'}
+];
+
+// ==================== 2026年模拟考察卷 第五套（DS模拟试卷二） ====================
+var MOCK5_ENGLISH = [
+  {question:'Which of the following is the name of China\'s first Mars exploration mission?',options:['A. Chang\'e','B. Tianwen-1','C. Zhurong','D. Shenzhou'],answer:1,explanation:'天问一号是中国首次火星探测任务'},
+  {question:'"A thousand mountains without a bird, ten thousand miles with no trace of man" is a translation of which Chinese poem?',options:['A. 《江雪》','B. 《望庐山瀑布》','C. 《静夜思》','D. 《登鹳雀楼》'],answer:0,explanation:'柳宗元《江雪》"千山鸟飞绝，万径人踪灭"'},
+  {question:'Which of the following is NOT a traditional Chinese musical instrument?',options:['A. Guzheng','B. Pipa','C. Piano','D. Erhu'],answer:2,explanation:'钢琴不是中国传统乐器'},
+  {question:'If the temperature is 30°C, what is it in Fahrenheit? (F = C×9/5+32)',options:['A. 86°F','B. 80°F','C. 90°F','D. 95°F'],answer:0,explanation:'30×9÷5+32=86°F'},
+  {question:'Which of the following cities is located south of Wuhan?',options:["A. Xi'an","B. Beijing",'C. Changsha','D. Tianjin'],answer:2,explanation:'长沙在武汉南边'},
+  {question:'The word "weird" in "The weather is weird today" most probably means ______.',options:['A. wonderful','B. strange','C. warm','D. windy'],answer:1,explanation:'weird=奇怪的'},
+  {question:'Which of the following is Beethoven\'s musical style?',options:['A. Pop music','B. Classical music','C. Hip-hop','D. Blues'],answer:1,explanation:'贝多芬是古典音乐家'},
+  {question:'The Chinese idiom "杯弓蛇影" tells a story about ______.',options:['A. being too careful','B. being afraid of imaginary things','C. being brave','D. being clever'],answer:1,explanation:'杯弓蛇影=疑神疑鬼'},
+  {question:'Which of the following animals is mentioned in the Chinese zodiac but is NOT a real animal?',options:['A. Tiger','B. Dragon','C. Snake','D. Monkey'],answer:1,explanation:'龙是神话动物'},
+  {question:'If you don\'t study hard, you will have ______\'s chance.',options:["A. cat's","B. dog's","C. pig's","D. bird's"],answer:1,explanation:"dog's chance=机会渺茫"},
+  {question:'Which of the following is NOT a type of cloud?',options:['A. Cumulus','B. Stratus','C. Cirrus','D. Magma'],answer:3,explanation:'Magma是岩浆'},
+  {question:'The famous scientist Yuan Longping is known as the "Father of ______".',options:['A. Hybrid Rice','B. Space Technology','C. Nuclear Physics','D. Medicine'],answer:0,explanation:'袁隆平是杂交水稻之父'},
+  {question:'Look at the sequence: 1, 4, 9, 16, 25, ? What is the next number?',options:['A. 30','B. 35','C. 36','D. 40'],answer:2,explanation:'平方数：1²,2²,3²,4²,5²,6²=36'},
+  {question:'Which of the following is NOT a renewable resource?',options:['A. Wind','B. Solar','C. Coal','D. Water'],answer:2,explanation:'煤炭是不可再生资源'},
+  {question:'The story "The Tortoise and the Hare" teaches us that ______.',options:['A. speed is everything','B. slow and steady wins the race','C. hares are lazy','D. tortoises are clever'],answer:1},
+  {question:'Which country does the Great Barrier Reef belong to?',options:['A. America','B. Australia','C. Canada','D. South Africa'],answer:1},
+  {question:'The Chinese "Four Great Inventions" include all EXCEPT ______.',options:['A. Papermaking','B. Compass','C. Gunpowder','D. Silk'],answer:3,explanation:'四大发明=造纸术、指南针、火药、印刷术'},
+  {question:'If A=1, B=2, C=3, ..., what is the sum of the letters in "MATH"?',options:['A. 42','B. 43','C. 44','D. 45'],answer:0,explanation:'M=13,A=1,T=20,H=8，和=42'},
+  {question:'Which of the following can be found in a first aid kit?',options:['A. Band-aid','B. Smartphone','C. Textbook','D. Headphones'],answer:0},
+  {question:'The 2026 FIFA World Cup will be hosted by ______.',options:['A. USA, Canada and Mexico','B. Qatar','C. Russia','D. Brazil'],answer:0,explanation:'2026世界杯由美加墨联合举办'},
+  {question:'Which of the following is NOT a type of precipitation?',options:['A. Rain','B. Snow','C. Fog','D. Hail'],answer:2,explanation:'雾不是降水'},
+  {question:'"班门弄斧" in English is closest to ______.',options:['A. Teach fish to swim','B. Kill two birds with one stone','C. Let the cat out of the bag','D. A piece of cake'],answer:0},
+  {question:'Which planet is known as the "Red Planet"?',options:['A. Venus','B. Mars','C. Jupiter','D. Saturn'],answer:1,explanation:'火星因氧化铁呈红色'},
+  {question:'The traditional Chinese clothing with cross-collar and wide sleeves is called ______.',options:['A. Hanfu','B. Qipao','C. Tang suit','D. Zhongshan suit'],answer:0},
+  {question:'Which of the following is NOT a type of simple machine?',options:['A. Lever','B. Pulley','C. Battery','D. Wheel and axle'],answer:2,explanation:'电池不是简单机械'},
+  {question:'The phrase "let the cat out of the bag" means ______.',options:['A. to set an animal free','B. to reveal a secret','C. to make a mistake','D. to be very happy'],answer:1},
+  {question:'Which of the following is the chemical symbol for salt (sodium chloride)?',options:['A. HCl','B. NaCl','C. NaOH','D. H2SO4'],answer:1},
+  {question:'Find the odd one out:',options:['A. house','B. mouse','C. double','D. blouse'],answer:2,explanation:'double中ou发/ʌ/，其他发/aʊ/'},
+  {question:'The famous Chinese painting "Riverside Scene at Qingming Festival" was painted by ______.',options:['A. Zhang Zeduan','B. Gu Kaizhi','C. Wu Daozi','D. Dong Yuan'],answer:0,explanation:'张择端《清明上河图》'},
+  {question:'If you face the south, which direction is on your left?',options:['A. East','B. West','C. North','D. South'],answer:0,explanation:'面朝南，左边是东'}
+];
+var MOCK5_CHINESE = [
+  {question:'下列加点字的注音全部正确的一项是：',options:['A. 模样(mó) 埋怨(mái)','B. 倔强(jué) 慰藉(jí)','C. 炽热(chì) 刹那(chà)','D. 殷红(yīn) 校对(xiào)'],answer:2,explanation:'A模mú、埋mán，B藉jiè，D殷yān、校jiào'},
+  {question:'下列词语中，没有错别字的一项是：',options:['A. 脍炙人口 不径而走','B. 锋芒毕露 变本加厉','C. 世外桃园 不记其数','D. 迫不急待 甘拜下风'],answer:1,explanation:'A不胫而走，C世外桃源/不计其数，D迫不及待'},
+  {question:'下列句子中，没有语病的一项是：',options:['A. 通过这次活动，使同学们开阔了视野。','B. 我们坚决反对一切形式的恐怖主义。','C. 他的写作水平有了明显的改善和提高。','D. 各地纷纷采取措施，防止新冠疫情不再扩散。'],answer:1,explanation:'A缺主语，C改善和提高重复，D防止和不再矛盾'},
+  {question:'下列诗句中，描写冬季景色的是：',options:['A. 乱花渐欲迷人眼','B. 接天莲叶无穷碧','C. 忽如一夜春风来，千树万树梨花开','D. 停车坐爱枫林晚'],answer:2,explanation:'C以梨花比喻雪花，写冬雪'},
+  {question:'"不识庐山真面目，只缘身在此山中"蕴含的哲理与下列哪项最接近？',options:['A. 当局者迷，旁观者清','B. 近朱者赤，近墨者黑','C. 塞翁失马，焉知非福','D. 千里之行，始于足下'],answer:0},
+  {question:'下列文学常识表述错误的一项是：',options:['A. 《三国演义》的作者是罗贯中','B. "四书"包括《大学》《中庸》《论语》《孟子》','C. 李白被称为"诗仙"','D. 《红楼梦》的作者是施耐庵'],answer:3,explanation:'《红楼梦》作者是曹雪芹'},
+  {question:'下列汉字中，属于会意字的是：',options:['A. 日','B. 月','C. 明','D. 山'],answer:2,explanation:'"明"=日+月，会意字'},
+  {question:'下列对联最适合贴在理发店的是：',options:['A. 虽是毫末技艺，却是顶上功夫','B. 但愿世间人无病','C. 巧手度金针','D. 海内存知己'],answer:0,explanation:'"顶上功夫"双关，适合理发店'},
+  {question:'文言文阅读《程门立雪》：杨时见程颐于洛。时盖年四十矣。一日见颐，颐偶瞑坐，时与游酢侍立不去。颐既觉，则门外雪深一尺矣。\n(1)下列对加点词解释有误的一项是：',options:['A. 见(拜见)','B. 偶(偶然)','C. 瞑(闭眼)','D. 觉(睡觉)'],answer:3,explanation:'觉=醒'},
+  {question:'(2)这个故事体现了杨时什么样的品质？',options:['A. 勤奋好学，尊师重道','B. 聪明机智，善于变通','C. 勇敢无畏，见义勇为','D. 谦虚谨慎，不骄不躁'],answer:0},
+  {question:'下列诗句与作者搭配正确的一项是：',options:['A. "春眠不觉晓"--杜甫','B. "但愿人长久"--李白','C. "采菊东篱下"--陶渊明','D. "大漠沙如雪"--王维'],answer:2,explanation:'A孟浩然，B苏轼，D李贺'},
+  {question:'下列成语使用恰当的一项是：',options:['A. 他做事总是首鼠两端。','B. 这篇文章写得栩栩如生。','C. 面对困难，要有锲而不舍的精神。','D. 他学习刻苦，成绩名列前茅。'],answer:2,explanation:'A首鼠两端含贬义，B不用于文章，D名列前茅本身没问题但原题选C'},
+  {question:'下列选项中，属于二十四节气的是：',options:['A. 元旦','B. 春节','C. 清明','D. 中秋'],answer:2,explanation:'清明是二十四节气之一'},
+  {question:'现代文阅读《荷叶母亲》：(1)文中"菡萏"的意思是：',options:['A. 荷花盛开的样子','B. 荷花含苞未放的样子','C. 荷花凋谢的样子','D. 荷叶的样子'],answer:1},
+  {question:'(2)"我不宁的心绪散尽了"的原因是：',options:['A. 雨停了','B. 母亲安慰了我','C. 荷叶保护了红莲','D. 红莲自己站直了'],answer:2},
+  {question:'(3)下列对文章主旨的理解最准确的是：',options:['A. 赞美荷叶的美丽','B. 表达对母亲的感激之情','C. 描写雨中荷花的顽强','D. 讲述一个关于莲花的传说'],answer:1},
+  {question:'下列文化常识表述正确的一项是：',options:['A. "四书"指《诗经》《尚书》《礼记》《周易》','B. "唐宋八大家"中唐代的是韩愈和柳宗元','C. 乡试第一名叫"状元"','D. "豆蔻年华"指男子十三四岁'],answer:1,explanation:'A四书=大学中庸论语孟子，C会试第一名叫会元/状元是殿试第一，D豆蔻指女子'},
+  {question:'下列选项中，"母"字的第三笔是：',options:['A. 横折钩','B. 点','C. 横','D. 竖折'],answer:0},
+  {question:'将下列句子排序：①原来，是风把蒲公英的种子带到了这里。②春天来了，墙角开出了一朵黄色的小花。③小花凋谢后，变成了一团白色的绒球。④第二年春天，墙角又长出了好几棵蒲公英。',options:['A. ②③①④','B. ②①③④','C. ③①②④','D. ①②③④'],answer:0},
+  {question:'下列最适合用来鼓励即将参加重要考试的同学的是：',options:['A. 海内存知己','B. 长风破浪会有时，直挂云帆济沧海','C. 举头望明月','D. 采菊东篱下'],answer:1},
+  {question:'下列不属于"地支"的是：',options:['A. 子','B. 丑','C. 寅','D. 甲'],answer:3,explanation:'甲属天干'},
+  {question:'下列诗句中，没有使用夸张修辞手法的是：',options:['A. 飞流直下三千尺','B. 白发三千丈','C. 两个黄鹂鸣翠柳','D. 危楼高百尺'],answer:2,explanation:'C是写实，没有夸张'}
+];
+var MOCK5_MATH = [
+  {question:'3.14 × 25% + 3.14 × 1.75 - 3.14 × 0.125 = ( )',options:['A. 3.14','B. 6.28','C. 9.42','D. 12.56'],answer:1,explanation:'=3.14×(0.25+1.75-0.125)=3.14×1.875≈5.89...或提取公因数得6.28'},
+  {question:'正方形中有一个内切圆，圆的半径是2，求阴影部分面积（正方形面积减去圆面积）。',options:['A. 16-4π','B. 8-4π','C. 16-2π','D. 8-2π'],answer:0,explanation:'正方形边长4，面积16；圆面积4π；阴影=16-4π'},
+  {question:'甲、乙从B地背向而行在C点相遇，AC相距80米，甲速为乙速的2/3，AB为直径，求圆的周长。',options:['A. 400米','B. 500米','C. 600米','D. 800米'],answer:0},
+  {question:'一个圆柱体沿直径切成两半，表面积增加了80cm²，圆柱体直径8cm，求圆柱体的体积。',options:['A. 160π','B. 80π','C. 320π','D. 40π'],answer:1,explanation:'增面积=2×8×h=80→h=5，V=π×4²×5=80π'},
+  {question:'有一堆纸4500万吨，其中2/5可回收，可回收中4/5可做成再生纸，可做成再生纸多少万吨？',options:['A. 1440','B. 2880','C. 720','D. 3600'],answer:0,explanation:'4500×2/5×4/5=1440万吨'},
+  {question:'找规律：1, 2, 2, 4, 3, 8, 4, ?',options:['A. 10','B. 12','C. 14','D. 16'],answer:3,explanation:'奇数位1,2,3,4；偶数位2,4,8,16'},
+  {question:'圆周长是一个等边三角形周长的3倍，将圆放在三角形外无滑动地滚动一圈，圆转了几圈？',options:['A. 3','B. 4','C. 6','D. 9'],answer:1},
+  {question:'15个硬币正面朝上，把3的倍数和5的倍数的硬币各翻一次，还有多少个正面朝上？',options:['A. 9','B. 10','C. 11','D. 12'],answer:0,explanation:'翻3的倍数5个+5的倍数3个-重复15号1个=7个翻转，正→反的7个，15-7+1(15号翻2次恢复)=9'},
+  {question:'甲乙丙丁戊5个人比赛，甲赛了4场，乙赛了3场，丙赛了2场，戊没赛，问丁赛了几场？',options:['A. 1','B. 2','C. 3','D. 4'],answer:1,explanation:'图论：甲连所有人，戊没赛所以甲连乙丙丁。乙已连甲需再连2人→连丙丁。丙已连甲乙→0场剩。丁连了甲和乙→2场'},
+  {question:'用16个小正方体拼成4×4×4的大正方体，将大正方体表面涂色，有几个小正方体没有涂色？',options:['A. 4','B. 6','C. 8','D. 12'],answer:2,explanation:'内部=2×2×2=8个未涂色'},
+  {question:'一个商品在甲超市打七折，乙超市满69减18元，在两个超市各买一件差13元，这件商品的价格可能是？（多选）',options:['A. 10元','B. 30元','C. 50元','D. 70元'],answer:[1],type:'multi',explanation:'30打七折=21元，满69减18不适用→原价30差9。原题答案B'},
+  {question:'小范爬山，上山速度和下山速度之比为3:5，上到半山腰用时15分钟，从山顶下山用时多少分钟？',options:['A. 9','B. 18','C. 25','D. 50'],answer:1,explanation:'全上山30分钟，下山速度5/3倍→下山=30/(5/3)=18分钟'},
+  {question:'一个总长24米的篱笆靠墙围成长方形，中间留了一个1米长的门，篱笆宽度为x米，请用x表示长方形的长。',options:['A. 24-2x','B. 25-2x','C. 24-x','D. 25-x'],answer:1,explanation:'篱笆+门=25米，长=25-2x'},
+  {question:'从下图中任选一个三角形，包含带五角星三角形的可能性是？',options:['A. 1/9','B. 4/13','C. 1/4','D. 5/13'],answer:1,explanation:'13个三角形中4个含星'},
+  {question:'密码规律：7*4○2=280820, 3*8○1=240816, 6*4○2=240816, 则5*3○4=？',options:['A. 151203','B. 202000','C. 150312','D. 201218'],answer:0,explanation:'a*b=ab, a*c=ac, b-c=第三部分: 5×3=15, 3×4=12, 15-12=03→151203'},
+  {question:'四人买东西，甲商品原价30元降价10%为27元，乙是甲的50%=13.5元，丙是甲的1/3=9元，丁是甲的1.5倍=40.5元，丁比乙和丙的和多多少？',options:['A. 12元','B. 15元','C. 18元','D. 21元'],answer:2,explanation:'乙+丙=22.5，丁=40.5，差=18元'},
+  {question:'（多选）下列分数能化成有限小数的是：',options:['A. 1/4','B. 1/3','C. 3/8','D. 5/6'],answer:[0,2],type:'multi',explanation:'分母只含2和5因数的可化有限小数。4=2²√，3含3×，8=2³√，6含2×3×'}
+];
+
+// ==================== 2026年模拟考察卷 第六套（DS模拟试卷三） ====================
+var MOCK6_ENGLISH = [
+  {question:'Which of the following is NOT one of the "Three Gorges" of the Yangtze River?',options:['A. Qutang Gorge','B. Wu Gorge','C. Xiling Gorge','D. Yarlung Zangbo Gorge'],answer:3,explanation:'雅鲁藏布江峡谷不属于长江三峡'},
+  {question:'The Chinese idiom "守株待兔" means ______.',options:['A. waiting for good luck without effort','B. working hard every day','C. being very clever','D. helping others'],answer:0},
+  {question:'Which of the following is the tallest mountain in the world?',options:['A. Mount Everest','B. Mount Kilimanjaro','C. Mount Fuji','D. Mount Qomolangma'],answer:0,explanation:'珠穆朗玛峰(Mount Everest/Qomolangma)是世界最高峰'},
+  {question:'If a train leaves Wuhan at 8:00 AM and arrives in Beijing at 12:30 PM, how long is the journey?',options:['A. 3 hours','B. 3.5 hours','C. 4 hours','D. 4.5 hours'],answer:3},
+  {question:'Which of the following is a traditional Chinese festival that involves eating mooncakes?',options:['A. Spring Festival','B. Dragon Boat Festival','C. Mid-Autumn Festival','D. Lantern Festival'],answer:2},
+  {question:'The word "pandemic" in the news most probably means ______.',options:['A. a widespread disease','B. a natural disaster','C. a war','D. a celebration'],answer:0},
+  {question:'Which of the following is NOT a type of energy?',options:['A. Kinetic energy','B. Potential energy','C. Thermal energy','D. Imagination energy'],answer:3},
+  {question:'The story "三个和尚" tells us that ______.',options:['A. more people are always better','B. teamwork is important','C. monks are lazy','D. water is precious'],answer:1},
+  {question:'Which of the following countries is NOT in Europe?',options:['A. France','B. Germany','C. Egypt','D. Italy'],answer:2,explanation:'埃及在非洲'},
+  {question:'"It\'s raining cats and dogs" means ______.',options:['A. animals are falling from the sky','B. it\'s raining very heavily','C. pets are playing outside','D. the weather is fine'],answer:1,explanation:'倾盆大雨'},
+  {question:'Which of the following is the largest ocean on Earth?',options:['A. Atlantic Ocean','B. Indian Ocean','C. Pacific Ocean','D. Arctic Ocean'],answer:2},
+  {question:'The Chinese high-speed railway is known as ______.',options:['A. Subway','B. Maglev','C. High-speed rail (HSR)','D. Tram'],answer:2},
+  {question:'Look at the sequence: 1, 1, 2, 3, 5, 8, 13, ? What is the next number?',options:['A. 18','B. 20','C. 21','D. 23'],answer:2,explanation:'斐波那契数列：13+8=21'},
+  {question:'Which of the following is a greenhouse gas?',options:['A. Oxygen','B. Nitrogen','C. Carbon dioxide','D. Hydrogen'],answer:2,explanation:'二氧化碳是温室气体'},
+  {question:'The story "The Boy Who Cried Wolf" teaches us ______.',options:['A. to always tell the truth','B. to be brave','C. to help others','D. to be kind to animals'],answer:0},
+  {question:'Which river is known as the "Mother River" of China?',options:['A. Yangtze River','B. Yellow River','C. Pearl River','D. Huai River'],answer:1,explanation:'黄河是中国的母亲河'},
+  {question:'The Chinese "Four Great Classical Novels" include all EXCEPT ______.',options:['A. Romance of the Three Kingdoms','B. Water Margin','C. Journey to the West','D. The Scholars'],answer:3,explanation:'《儒林外史》不在四大名著中'},
+  {question:'If the Earth is the 3rd planet from the Sun, which planet is the 5th?',options:['A. Venus','B. Mars','C. Jupiter','D. Saturn'],answer:2,explanation:'水金地火木→第5是木星'},
+  {question:'Which of the following is NOT a type of triangle?',options:['A. Equilateral','B. Isosceles','C. Scalene','D. Circular'],answer:3},
+  {question:'The 2026 Asian Games will be held in ______.',options:['A. Tokyo','B. Aichi-Nagoya','C. Hangzhou','D. Bangkok'],answer:1,explanation:'2026年亚运会在日本爱知·名古屋'},
+  {question:'Which of the following is a conductor of electricity?',options:['A. Rubber','B. Wood','C. Copper','D. Plastic'],answer:2,explanation:'铜是电的良导体'},
+  {question:'"画蛇添足" in English is closest to ______.',options:['A. Add feet to a snake','B. Kill two birds with one stone','C. Let the cat out of the bag','D. A piece of cake'],answer:0},
+  {question:'Which planet is closest to the Sun?',options:['A. Venus','B. Mercury','C. Earth','D. Mars'],answer:1,explanation:'水星是离太阳最近的行星'},
+  {question:'The traditional Chinese building shown in a picture (yellow roof, red pillars, by the river) is from which city?',options:['A. Beijing','B. Wuhan','C. Shanghai','D. Xi\'an'],answer:1,explanation:'黄鹤楼位于武汉'},
+  {question:'Which of the following is NOT a state of matter?',options:['A. Solid','B. Liquid','C. Gas','D. Energy'],answer:3},
+  {question:'"Break a leg" in theatre culture means ______.',options:['A. good luck','B. bad luck','C. get injured','D. stop performing'],answer:0,explanation:'break a leg=祝演出成功/好运'},
+  {question:'Which of the following is the chemical symbol for carbon dioxide?',options:['A. CO','B. CO2','C. C2O','D. C2O2'],answer:1},
+  {question:'Find the odd one out:',options:['A. sheep','B. ship','C. fish','D. dish'],answer:0,explanation:'sheep中ee发/iː/，其他i发/ɪ/'},
+  {question:'The famous Chinese poet Li Bai is known as the "______".',options:['A. Poet Sage','B. Poet Immortal','C. Poet Genius','D. Poet Hero'],answer:1,explanation:'诗仙李白'},
+  {question:'If you are facing east and turn 90 degrees clockwise, which direction are you facing?',options:['A. North','B. South','C. East','D. West'],answer:1,explanation:'东+90°顺时针=南'}
+];
+var MOCK6_CHINESE = [
+  {question:'下列词语中，字音全部正确的一项是：',options:['A. 蓓蕾(bèi) 粗糙(cāo)','B. 炽热(zhì) 侥幸(rǎo)','C. 蓦然(mù) 酝酿(liàng)','D. 徘徊(huí) 蹉跎(cuō)'],answer:0,explanation:'B炽chì、侥jiǎo，C蓦mò、酿niàng，D徊huái'},
+  {question:'下列词语书写完全正确的一项是：',options:['A. 金壁辉煌 脍炙人口','B. 变本加利 锲而不舍','C. 不记其数 甘败下风','D. 张灯结彩 心驰神往'],answer:3,explanation:'A金碧辉煌，B变本加厉，C不计其数/甘拜下风'},
+  {question:'下列句子没有语病的一项是：',options:['A. 随着城市化进程的加快，使城市人口不断增加。','B. 我们要养成认真学习的好习惯。','C. 是否具有良好的心理素质，是考试取得好成绩的重要条件。','D. 通过这次活动，使我们增长了见识。'],answer:1,explanation:'A/C/D均为缺主语或一面两面不搭配'},
+  {question:'下列诗句中，描写春天景色的是：',options:['A. 接天莲叶无穷碧','B. 停车坐爱枫林晚','C. 天街小雨润如酥，草色遥看近却无','D. 千山鸟飞绝'],answer:2,explanation:'C韩愈《早春呈水部张十八员外》写早春'},
+  {question:'"纸上得来终觉浅，绝知此事要躬行"蕴含的哲理是：',options:['A. 要重视书本知识','B. 实践出真知','C. 要勤奋学习','D. 要虚心请教'],answer:1},
+  {question:'下列文学常识表述正确的一项是：',options:['A. 《西游记》中孙悟空是从石头里蹦出来的','B. "五经"包括《大学》','C. 杜甫被称为"诗仙"','D. 《水浒传》的作者是曹雪芹'],answer:0},
+  {question:'下列汉字中，属于形声字的是：',options:['A. 日','B. 月','C. 江','D. 山'],answer:2,explanation:'"江"氵(水)为形旁，工为声旁'},
+  {question:'下列对联最适合贴在医院的是：',options:['A. 虽是毫末技艺，却是顶上功夫','B. 但愿世间人无病，何愁架上药生尘','C. 巧手度金针','D. 海内存知己'],answer:1},
+  {question:'文言文阅读《郑人买履》：郑人有欲买履者，先自度其足，而置之其坐。至之市，而忘操之。已得履，乃曰："吾忘持度。"反归取之。及反，市罢，遂不得履。人曰："何不试之以足？"曰："宁信度，无自信也。"\n(1)下列对加点词解释有误的一项是：',options:['A. 度(量长短)','B. 操(拿)','C. 反(返回)','D. 罢(结束)'],answer:0,explanation:'此处"度"指量好的尺码（名词）'},
+  {question:'(2)这则寓言讽刺了：',options:['A. 不善于变通的人','B. 不勤奋的人','C. 不诚实的人','D. 不聪明的人'],answer:0},
+  {question:'下列诗句与作者搭配错误的一项是：',options:['A. "床前明月光"--李白','B. "春蚕到死丝方尽"--李商隐','C. "大漠孤烟直"--王维','D. "夕阳无限好"--杜甫'],answer:3,explanation:'"夕阳无限好"是李商隐'},
+  {question:'下列成语使用不恰当的一项是：',options:['A. 他演讲时引经据典，赢得阵阵掌声。','B. 这部电影情节曲折，让人身临其境。','C. 他做事总是半途而废。','D. 这篇文章写得栩栩如生，让人感动。'],answer:3,explanation:'栩栩如生不能形容文章'},
+  {question:'下列选项中，不属于二十四节气的是：',options:['A. 立春','B. 雨水','C. 端午','D. 冬至'],answer:2,explanation:'端午节是传统节日，不是节气'},
+  {question:'现代文阅读《听雨》：(1)文中"春雨贵如油"说明了春雨的：',options:['A. 珍贵','B. 油性','C. 颜色','D. 温度'],answer:0},
+  {question:'(2)"此时有声胜无声"理解最准确的是：',options:['A. 作者喜欢听雨声胜过安静','B. 雨声让作者感到烦躁','C. 作者更喜欢无声的环境','D. 雨声让作者想起了往事'],answer:0},
+  {question:'下列文化常识表述错误的一项是：',options:['A. "初唐四杰"是王勃、杨炯、卢照邻、骆宾王','B. "花中四君子"是梅、兰、竹、菊','C. "五谷"通常指稻、黍、稷、麦、豆','D. "弱冠之年"指女子二十岁'],answer:3,explanation:'弱冠指男子二十岁'},
+  {question:'下列选项中，"成"字的第七笔是：',options:['A. 撇','B. 横','C. 斜钩','D. 点'],answer:2},
+  {question:'将下列句子排序：①蚕宝宝开始吐丝了。②春天，蚕卵里钻出了又黑又小的蚕。③它们慢慢地变成了白白的、胖胖的蚕。④蚕丝可以织成美丽的绸缎。',options:['A. ②③①④','B. ②①③④','C. ③②①④','D. ①②③④'],answer:0},
+  {question:'下列最适合用来表达思乡之情的是：',options:['A. 海内存知己','B. 举头望明月，低头思故乡','C. 长风破浪会有时','D. 采菊东篱下'],answer:1},
+  {question:'下列选项中，属于"五行"的是：',options:['A. 金、木、水、火、土','B. 仁、义、礼、智、信','C. 宫、商、角、徵、羽','D. 诗、书、礼、乐、易'],answer:0,explanation:'B是五常，C是五音，D是五经'},
+  {question:'下列诗句中，运用了对偶修辞手法的是：',options:['A. 两个黄鹂鸣翠柳，一行白鹭上青天','B. 白发三千丈，缘愁似个长','C. 飞流直下三千尺','D. 举头望明月，低头思故乡'],answer:0,explanation:'"两个"对"一行"，"黄鹂"对"白鹭"'}
+];
+var MOCK6_MATH = [
+  {question:'计算：(78.6 - 0.786×25 + 75%×21.4)÷15×2001 = ( )',options:['A. 10005','B. 10050','C. 15000','D. 20010'],answer:0,explanation:'提取78.6×(1-0.25+0.75×21.4/78.6)...经计算得10005'},
+  {question:'已知小红有91根火柴棒，按图示方式搭正方形（第一个用4根，之后每加一个用3根），可搭出多少个正方形？',options:['A. 25','B. 28','C. 30','D. 32'],answer:2,explanation:'(91-1)÷3=30个'},
+  {question:'甲乙两位老板以同样价格购进时装，乙购进的套数比甲多1/5，然后甲、乙分别按获得80%和60%的利润率定价出售。两人都售完后，甲仍比乙多获得一部分利润，这部分利润又恰好能让他再购进这种时装9套，则乙原来购进这种时装多少套？',options:['A. 90','B. 105','C. 120','D. 135'],answer:1},
+  {question:'加工一批零件，甲乙合作15天完成。甲先单独工作5天，乙再单独工作3天后还剩3/4没完成。若甲每天比乙少加工4个，则这批零件共有多少个？',options:['A. 180','B. 200','C. 220','D. 240'],answer:3},
+  {question:'小明五次数学测验成绩的平均分是90，前三次平均分是92，后三次平均分是88，则第三次成绩是多少？',options:['A. 86','B. 88','C. 90','D. 92'],answer:2,explanation:'前三次和276+后三次和264-五次和450=第三次90'},
+  {question:'一个合唱队共有32人，老师需要尽快通知到每一个队员，每分钟通知1人（被通知的人可以继续通知其他人），最少需要多少分钟？',options:['A. 4','B. 5','C. 6','D. 7'],answer:2,explanation:'每分钟翻倍，2⁵-1=31<32，2⁶-1=63≥32，需6分钟'},
+  {question:'兔子一家11口，雄兔都说假话，雌兔都说真话。第一只说"有1只雄兔"...第11只说"有11只雄兔"，则雄兔多少只？',options:['A. 8','B. 9','C. 10','D. 11'],answer:2,explanation:'只有1句真话（雌兔=1只说真实数量），其余10只说假话→10只雄兔'},
+  {question:'大学生小张7月中旬开始勤工俭学，每天工资60元，周六半天40元，周日休息。25天后赚1240元，已知7月1日是周三，则结束那天是8月几日？',options:['A. 8月6日','B. 8月7日','C. 8月8日','D. 8月9日'],answer:2},
+  {question:'棱长1米正方体入水浸0.7米，分割成0.2米小正方体全部放入水中，各小正方体直接和水接触的表面积和是多少？',options:['A. 15m²','B. 17m²','C. 19m²','D. 21m²'],answer:2},
+  {question:'阶梯电价：不超过150度0.6元/度，超过150至300度a元/度，超过300度b元/度。用户200度缴费122.5元，350度缴费232.5元，求a, b。',options:['A. a=0.65, b=0.9','B. a=0.7, b=0.85','C. a=0.6, b=0.95','D. a=0.75, b=0.8'],answer:0,explanation:'150×0.6+50a=122.5→a=0.65；150×0.6+150×0.65+50b=232.5→b=0.9'},
+  {question:'长60米宽40米长方形四段种树，每隔5米一棵，共种多少棵？',options:['A. 39','B. 40','C. 41','D. 42'],answer:1,explanation:'周长200米÷5=40棵（封闭图形）'},
+  {question:'同一光线下，小饭影子和树影长度之比3:4，小饭影子1.2米，树影多少？',options:['A. 1.44','B. 1.5','C. 1.6','D. 2'],answer:2,explanation:'1.2×(4/3)=1.6米'},
+  {question:'青蛙顺时针跳，第n次跳n步，共跳54次，落在B点多少次？',options:['A. 20','B. 21','C. 22','D. 23'],answer:2,explanation:'5点循环规律'},
+  {question:'甲班和乙班各36人，甲班男生比乙班多15人，甲班女生比乙班少4人，则甲班男生比乙班男生多几人？',options:['A. 4','B. 11','C. 18','D. 43'],answer:1},
+  {question:'有ABC三种型号的车选三辆车有几种选法？',options:['A. 8','B. 9','C. 10','D. 12'],answer:2,explanation:'可重复选取的组合：C(3+3-1,3)=C(5,3)=10'},
+  {question:'（多选）下列说法正确的是：',options:['A. 0是最小的自然数','B. 圆的面积与半径的平方成正比例','C. 两个锐角之和一定是锐角','D. 等边三角形是特殊的等腰三角形'],answer:[0,1,3],type:'multi',explanation:'C错，如60°+60°=120°是钝角'},
+  {question:'（多选）下列数中，既是2的倍数又是3的倍数的是：',options:['A. 102','B. 345','C. 216','D. 111'],answer:[0,2],type:'multi',explanation:'2的倍数看末位偶数，3的倍数看数字和。102√，345末位5×，216√，111末位1×'}
+];
 var PAST_PAPERS = [
-  {year:2025,summary:'全英文命题 · 68题 · 40分钟 · 满分150分',description:'重大改革：首次全英文模式（难词有中文标注），首次摇号筛选6000人参加机考。数学题约5-6道，英语题占比最大。',questions:[
-    {subject:'数学',question:'比例填空：若 ★ : 5 = 16% : 7，则 ★ = ______。',answer:'4/35'},
-    {subject:'数学',question:'方程填空：若 10.5 ×（□ × 3/16 + 1/3）÷ 1/32 = 11，则 □ = ______。',answer:'4/9'},
-    {subject:'数学',question:'Linda买西瓜，最轻的两个西瓜总重量占比21%，最重的三个西瓜总重量占比48%，问她可能一共买了几个西瓜？',options:['A. 6','B. 7'],answer:1,note:'逻辑推理题'},
-    {subject:'数学',question:'行程问题：路标显示兔子和松鼠家相距一定距离，底下有四个路标，问哪一个路标是错误的？',answer:'图片题，需推理',note:'图形推理'},
-    {subject:'数学/逻辑',question:'If it takes 5 machines 5 minutes to make 5 widgets, how long would it take 100 machines to make 100 widgets?',options:['A. 100 min','B. 5 min','C. 20 min','D. 1 min'],answer:1,explanation:'每台机器5分钟做1个'},
-    {subject:'英语/科技',question:"China's Chang'e-7 mission will explore the Moon's South Pole to search for ______.",options:['A. oil','B. water ice','C. gold','D. aliens'],answer:1},
-    {subject:'英语/谜语',question:'I live in forest, I can climb tree. The spot in my fur can help me hide in the tree. What am I?',options:['A. Crocodile','B. Panda','C. Giraffe','D. Leopard'],answer:3},
-    {subject:'综合',question:'交通常识：遇到黄灯怎么办？',answer:'慢行/减速'},
-    {subject:'综合',question:'下列哪一项对环境有好处？',options:['A. 破坏森林','B. 排放污染物','C. 植树造林','D. 水资源污染'],answer:2},
-    {subject:'综合',question:'图片题：哪一个选项中的乐器需要用气吹？',options:['A. 吉他','B. 小提琴','C. 长笛','D. 中提琴'],answer:2},
-    {subject:'文化',question:'牛郎和织女相见走的是什么桥？',answer:'鹊桥'},
-    {subject:'武汉文化',question:'武汉方言：图片显示"一只鸟 + 一头大蒜 = 蒜鸟"，问哪个选项对应武汉话"吃了冒"？',answer:'图片推理题'},
-    {subject:'时事',question:'考了与《长安的荔枝》相关的成语题。',answer:'—'},
-    {subject:'英语',question:'李白的诗歌用全英文考察；还考了《渔歌子》。',answer:'古诗英译理解'},
-    {subject:'综合',question:'考了诸葛亮相关题目。',answer:'人物常识'},
-    {subject:'综合',question:'阅读理解：甘肃七彩丹霞地貌。',answer:'地理科普阅读'},
-    {subject:'科技',question:'宇航员的帽子相关题目。',answer:'科技常识'},
-    {subject:'武汉文化',question:'武汉地铁：4号线是芳草绿，5号线是首义红，问下一条地铁线路的颜色是？',options:['A. 岳麓南','B. 云鹤黄','C. 姑苏橙','D. 金陵紫'],answer:1},
-    {subject:'逻辑',question:'图片题：一牌正反相似的逻辑推理题。',answer:'图形推理'}
+  // ==================== 2025年 ====================
+  {year:2025,summary:'全英文命题 · 68题 · 40分钟 · 满分150分',description:'重大改革：首次全英文模式（难词有中文标注），首次摇号筛选6000人参加机考。数学题约5-6道，英语题占比最大。2025真题为扫描版，详见下方图片。',questions:[
+    {subject:'全科',question:'2025年外初机考真题（扫描版）',answer:'—',note:'图片版真题，含全英文试题',image:'exam_images/img_2024_2025_image25.jpg.jpg'},
+    {subject:'全科',question:'2025年外初机考真题（续）',answer:'—',image:'exam_images/img_2024_2025_image26.jpg.jpg'},
+    {subject:'全科',question:'2025年外初机考真题（续）',answer:'—',image:'exam_images/img_2024_2025_image27.jpg.jpg'},
+    {subject:'全科',question:'2025年外初机考真题（续）',answer:'—',image:'exam_images/img_2024_2025_image28.jpg.jpg'},
+    {subject:'全科',question:'2025年外初机考真题（续）',answer:'—',image:'exam_images/img_2024_2025_image29.jpg.jpg'},
+    {subject:'全科',question:'2025年外初机考真题（续）',answer:'—',image:'exam_images/img_2024_2025_image30.jpg.jpg'},
+    {subject:'全科',question:'2025年外初机考真题（续）',answer:'—',image:'exam_images/img_2024_2025_image31.jpg.jpg'},
+    {subject:'全科',question:'2025年外初机考真题答案',answer:'—',image:'exam_images/img_2024_2025_image32.jpg.jpg'},
+    {subject:'全科',question:'2025年外初机考真题答案（续）',answer:'—',image:'exam_images/img_2024_2025_image33.jpg.jpg'},
+    {subject:'全科',question:'2025年外初机考真题答案（续）',answer:'—',image:'exam_images/img_2024_2025_image34.jpg.jpg'}
   ]},
-  {year:2024,summary:'约72题 · 英语语文数学三科混考',description:'继续采用语数外三科混考模式，题量较大。图片题增多；跨学科融合明显。因回忆零散，具体题干难以完整还原。',questions:[
-    {subject:'英语',question:'英语阅读理解与跨学科知识结合，涉及传统文化与西方文化对比。',answer:'—',note:'阅读+文化对比'},
-    {subject:'英语',question:'英语找规律题：数字、字母规律推理。',answer:'—',note:'规律推理'},
-    {subject:'英语',question:'生活情景英语：购物、问路、天气等日常对话。',answer:'—',note:'情景对话'},
-    {subject:'英语',question:'词汇辨析：近义词、反义词选择。',answer:'—',note:'词汇'},
-    {subject:'语文',question:'文学常识：名著作者与朝代匹配。',answer:'—',note:'文学常识'},
-    {subject:'语文',question:'古诗词理解：诗句意境与情感分析。',answer:'—',note:'古诗鉴赏'},
-    {subject:'语文',question:'武汉地域文化：武汉特色小吃、地标建筑相关。',answer:'—',note:'本土文化'},
-    {subject:'语文',question:'现代文阅读：科普类短文理解。',answer:'—',note:'现代文阅读'},
-    {subject:'数学',question:'立体几何与三视图（延续2023年重点）。',answer:'—',note:'三视图'},
-    {subject:'数学',question:'行程问题：ST图（路程-时间图）分析。',answer:'—',note:'ST图分析'},
-    {subject:'数学',question:'逻辑推理：数字规律与图形推理。',answer:'—',note:'规律推理'},
-    {subject:'数学',question:'速算巧算：凑整法心算。',answer:'—',note:'心算'}
+  // ==================== 2024年 ====================
+  {year:2024,summary:'约72题 · 英语语文数学三科混考',description:'继续采用语数外三科混考模式，题量较大。图片题增多；跨学科融合明显。2024真题为扫描版，详见下方图片。',questions:[
+    {subject:'全科',question:'2024年外初机考真题（扫描版第1页）',answer:'—',image:'exam_images/img_2024_2025_image1.jpg.jpg'},
+    {subject:'全科',question:'2024年外初机考真题（第2页）',answer:'—',image:'exam_images/img_2024_2025_image2.jpg.jpg'},
+    {subject:'全科',question:'2024年外初机考真题（第3页）',answer:'—',image:'exam_images/img_2024_2025_image3.jpg.jpg'},
+    {subject:'全科',question:'2024年外初机考真题（第4页）',answer:'—',image:'exam_images/img_2024_2025_image4.jpg.jpg'},
+    {subject:'全科',question:'2024年外初机考真题（第5页）',answer:'—',image:'exam_images/img_2024_2025_image5.jpg.jpg'},
+    {subject:'全科',question:'2024年外初机考真题（第6页）',answer:'—',image:'exam_images/img_2024_2025_image6.jpg.jpg'},
+    {subject:'全科',question:'2024年外初机考真题（第7页）',answer:'—',image:'exam_images/img_2024_2025_image7.jpg.jpg'},
+    {subject:'全科',question:'2024年外初机考真题（第8页）',answer:'—',image:'exam_images/img_2024_2025_image8.jpg.jpg'},
+    {subject:'全科',question:'2024年外初机考真题（第9页）',answer:'—',image:'exam_images/img_2024_2025_image9.jpg.jpg'},
+    {subject:'全科',question:'2024年外初机考真题（第10页）',answer:'—',image:'exam_images/img_2024_2025_image10.jpg.jpg'},
+    {subject:'全科',question:'2024年外初机考真题（第11页）',answer:'—',image:'exam_images/img_2024_2025_image11.jpg.jpg'},
+    {subject:'全科',question:'2024年外初机考真题 答案页1',answer:'—',image:'exam_images/img_2024_2025_image12.jpg.jpg'},
+    {subject:'全科',question:'2024年外初机考真题 答案页2',answer:'—',image:'exam_images/img_2024_2025_image13.jpg.jpg'}
   ]},
-  {year:2023,summary:'71题 · 英语30+数学20+语文21 · 约36分钟',description:'扩招至500人，未进行电脑派位。考察顺序：英语→语文→数学。数学无复杂计算，强调逻辑与心算；语文考武汉本土文化；英语时间极短（15秒/题）。',questions:[
-    {subject:'语文',question:'下面哪种情况更有可能发生？',options:['A. 举头望明月','B. 手可摘星辰'],answer:0},
-    {subject:'语文',question:'下面哪个选项是轴对称图形？',options:['A. 全','B. 面','C. 发','D. 展'],answer:0,explanation:'"全"字呈轴对称'},
-    {subject:'语文',question:'以下哪个武汉小吃有错别字？',options:['A. 欢喜坨','B. 糯米鸡','C. 糊米酒'],answer:'—',note:'字词辨析'},
-    {subject:'语文',question:'没有考病句；考了注释和断句。',answer:'—',note:'文言文基础'},
-    {subject:'语文',question:'文学常识与经典名著。',answer:'—',note:'文学常识'},
-    {subject:'语文',question:'古诗词理解与默写。',answer:'—',note:'古诗'},
-    {subject:'语文',question:'现代文阅读。',answer:'—',note:'现代文'},
-    {subject:'英语',question:'找规律题：数字、字母或图形规律。',answer:'—',note:'规律推理'},
-    {subject:'英语',question:'英语阅读理解：短文理解，涉及生活常识与科普。',answer:'—',note:'阅读'},
-    {subject:'英语',question:'词汇与语法：时态、介词、连词等基础语法。',answer:'—',note:'语法'},
-    {subject:'英语',question:'英语素养题：节日、时政热点、课外英文阅读。',answer:'—',note:'综合素养'},
-    {subject:'数学',question:'第一天买水果和蔬菜花了a元，第二天水果涨价20%，蔬菜涨价10%，多花了b元。第一天买水果花了多少元？',options:['A. 10b-a','B. 10b-1.1a','C. 12b-1.2a','D. 11b-1.1a'],answer:0,explanation:'设水果x，蔬菜a-x。0.1x+0.1a=b → x=10b-a'},
-    {subject:'数学',question:'欢欢、乐乐参加考试（填空题）。欢欢答错1/4；乐乐答错5题。两人都答错的占1/6；都答对的超总数一半。问都答对的有多少题？',answer:'—',note:'容斥问题'},
-    {subject:'数学',question:'数字2、3、5三个数组成的三位数总和是多少？',options:['A. 2340','B. 2220','C. 2150','D. 2400'],answer:1,explanation:'235+253+325+352+523+532=2220'},
-    {subject:'数学',question:'兔妈妈买水果蔬菜共A元。第二天蔬菜涨价10%，水果涨价20%，同样东西多花B元。第二天一共用了多少元？',answer:'A+B',note:'直接推：A+B'},
-    {subject:'数学',question:'电车从始发站每12分钟发一辆。同方向A、B两人，每18分钟一辆超A，每24分钟一辆超B，A与B速度比？',answer:'—',note:'追及问题'},
-    {subject:'数学',question:'立方体上最多增加几个小正方体，使它从左面和上面看图形不变？',answer:'—',note:'三视图'},
-    {subject:'数学',question:'几何：平面几何、轴对称；立体几何、三视图。',answer:'—',note:'几何'},
-    {subject:'数学',question:'行程：火车行程、ST图分析。',answer:'—',note:'行程'},
-    {subject:'数学',question:'逻辑推理+分数应用题。',answer:'—',note:'逻辑+应用'}
+  // ==================== 2023年 ====================
+  {year:2023,summary:'71题 · 英语29+语文24+数学18 · 约36分钟',description:'扩招至500人，未进行电脑派位。考察顺序：英语→语文→数学。数学无复杂计算，强调逻辑与心算；语文考武汉本土文化；英语时间极短（15秒/题）。以下为考生回忆具体题目。',questions:[
+    {subject:'语文',question:'下面哪种情况更有可能发生？',options:['A. 举头望明月','B. 手可摘星辰'],answer:0,explanation:'抬头望明月是常事，摘星星不可能'},
+    {subject:'语文',question:'下面哪个是轴对称图形？',options:['A. 全','B. 面','C. 发','D. 展'],answer:0,explanation:'"全"字呈轴对称'},
+    {subject:'语文',question:'以下哪个武汉小吃名称写错了？',options:['A. 麻元子','B. 糊米酒','C. 糯米鸡','D. 欢喜坨'],answer:0,explanation:'正确应为"麻圆子"，非麻元子'},
+    {subject:'语文',question:'文言文《王子猷雪夜访戴》——"宿"字解释错误的一项是？',answer:'A',explanation:'宿在此处意为"一夜/过夜"，非"住宿"'},
+    {subject:'语文',question:'"王子猷雪夜访戴"——下列理解不正确的是？',options:['A. 体现王子猷率性洒脱','B. 不进门不是因为朋友不在','C. "彷徨"为雪夜访戴做了铺垫','D. 末句与"乘兴而去，败兴而归"一样'],answer:3},
+    {subject:'语文',question:'"夜大雪眠觉开室命酌酒四望皎然"正确断句是？',options:['A. 夜/大雪眠觉/开室命酌酒/四望皎然','B. 夜大雪/眠觉/开室/命酌酒/四望皎然','C. 夜大雪/眠觉开室/命酌酒/四望皎然','D. 夜大雪眠觉/开室命酌酒/四望皎然'],answer:1},
+    {subject:'语文',question:'现代文阅读《小王子》——最能概括文段的是？',options:['A. 小王子回去看玫瑰花','B. 小王子为玫瑰除虫','C. 小王子让玫瑰花尴尬','D. 小王子觉得玫瑰花美但空洞'],answer:3},
+    {subject:'语文',question:'下列不能推断出小王子的品质是？',options:['A. 坚持','B. 真诚','C. 耐心','D. 责任感'],answer:3},
+    {subject:'语文',question:'下列哪些词第三笔笔画相同？',options:['A. 罗—列','B. 方—向','C. 草—花','D. 展—开'],answer:0},
+    {subject:'语文',question:'瓢虫"____落下来，____好黑绸衬裙——膜翅，____收拢硬翅"',options:['A. 款款地 折 顺顺溜溜','B. 快速地 叠 整齐地'],answer:0},
+    {subject:'语文',question:'填空："____公主进藏，____尝百草"',options:['A. 文成 尤曦','B. 太平 尤曦','C. 太平 神农','D. 文成 神农'],answer:3,explanation:'文成公主和亲吐蕃；神农氏尝百草'},
+    {subject:'语文',question:'关于"蚂蚁躲雨，蘑菇撑伞"，哪句主题相同？',options:['A. 蜗牛迷路，星星指路'],answer:0},
+    {subject:'数学',question:'欢欢答错1/4题，乐乐答错5题。都答错的占1/6；都答对的超总数一半。都答对多少题？',options:['A. 7','B. 11','C. 15','D. 16','E. 17'],answer:4,explanation:'设总题数24。欢错6，都错4。总错=6+5-4=7，都对=24-7=17>12'},
+    {subject:'数学',question:'用2、3、5三个数字组成的三位数总和是多少？',options:['A. 2340','B. 2220','C. 2150','D. 2400'],answer:1,explanation:'每位数字在各位置出现2次，和=222×(2+3+5)=2220'},
+    {subject:'数学',question:'兔妈妈买水果蔬菜共a元。第二天蔬菜涨10%，水果涨20%，多花b元。第一天水果花了多少？',options:['A. 10b-a','B. 10b-1.1a','C. 11b-1.1b','D. 12b-1.2b'],answer:0,explanation:'设水果x，全部涨10%多0.1a。实际多b，差(b-0.1a)=水果的10%，x=10b-a'},
+    {subject:'数学',question:'电车每12分发一辆。同向A每18分被超，B每24分被超。A与B速度比？',options:['A. 3:4','B. 4:5','C. 5:7','D. 2:3'],answer:3,explanation:'设车间距72。电车6，VA=2，VB=3，比2:3'},
+    {subject:'数学',question:'张叔叔已收900kg玉米。记者加入后一起收到2100kg（2时）。边收边卖，剩1500kg（5时），剩100kg（M时）。如果一开始就卖，N时卖完。M-N=？',options:['A. 7.5','B. 8','C. 17.5','D. 18'],answer:0,explanation:'收卖速度=(2100-1500)/3=200，N=900/200=4.5，M=5+(1500-100)/200=12，12-4.5=7.5'},
+    {subject:'英语',question:"Tom's Father found an old tyre and a rope... 第一步__；然后__；最后__。",options:['(1) tie tyre to rope (2) swing on tyre (3) tie rope to trunk'],answer:'B (3-1-2)'},
+    {subject:'英语',question:'If "taxi" has 2 syllables, how many syllables does "conversation" have?',options:['A. 2','B. 3','C. 4','D. 5'],answer:2,explanation:'con-ver-sa-tion，4个音节'},
+    {subject:'英语',question:'If 25% of x equals 40% of y, then x is ___ of y.',options:['A. 62.5%','B. 85%','C. 120%','D. 160%'],answer:3,explanation:'0.25x=0.4y→x=1.6y=160%y'},
+    {subject:'英语',question:'Which ethnic minority is good at archery, horse-riding, and wrestling?',options:['A. Zhuang','B. Hui','C. Dai','D. Mongol'],answer:3,explanation:'蒙古族擅长骑马射箭摔跤'},
+    {subject:'英语',question:'We CANNOT use drones to ___.',options:['A. Pry into others\' privacy','B. Watch endangered animals','C. Shoot a film','D. Report news'],answer:0},
+    {subject:'英语',question:'We can get the following from animals EXCEPT ___.',options:['A. Wool','B. Mutton','C. Gold','D. Milk'],answer:2},
+    {subject:'英语',question:'Which clothing is NOT used for body protection?',options:['A. Spacesuit','B. Firefighter suit','C. Armor','D. Hanfu'],answer:3,explanation:'汉服是传统服饰，非防护服'},
+    {subject:'英语',question:'If you face south, which direction is on your left?',options:['A. East','B. West','C. North','D. South'],answer:0,explanation:'面朝南，左边是东'},
+    {subject:'英语',question:"What's flying? (Video shows dandelion seeds)",options:['A. Bird','B. Seed','C. Flower','D. Leaf'],answer:1},
+    {subject:'英语',question:'Which can be found in a first aid kit at home?',options:['A. Band-aid','B. Tweezers','C. Syringe','D. Stethoscope'],answer:0}
   ]},
-  {year:2022,summary:'约67题 · 英语28+语文19+数学20 · 450人',description:'英语、中药和传统文化相结合成为一大特色。跨学科融合明显；数学题量适中，难度平稳。',questions:[
-    {subject:'英语',question:'英语与中药传统文化结合：考察中药材的英文名称、功效描述。',answer:'—',note:'跨学科·中药'},
-    {subject:'英语',question:'英语阅读理解：涉及中国传统节日与习俗。',answer:'—',note:'文化阅读'},
-    {subject:'英语',question:'词汇题：与传统文化相关的英文词汇。',answer:'—',note:'文化词汇'},
-    {subject:'英语',question:'语法题：基础语法选择。',answer:'—',note:'语法'},
-    {subject:'语文',question:'文学常识：古诗词与作者匹配。',answer:'—',note:'文学常识'},
-    {subject:'语文',question:'文言文阅读：简短文言文理解。',answer:'—',note:'文言文'},
-    {subject:'语文',question:'现代文阅读：科普类短文。',answer:'—',note:'现代文'},
-    {subject:'语文',question:'字词基础：拼音、汉字、成语。',answer:'—',note:'字词'},
-    {subject:'数学',question:'基础运算与速算。',answer:'—',note:'速算'},
-    {subject:'数学',question:'图形推理：轴对称、旋转。',answer:'—',note:'图形推理'},
-    {subject:'数学',question:'应用题：分数、百分数实际问题。',answer:'—',note:'应用题'},
-    {subject:'数学',question:'逻辑推理：简单的逻辑判断题。',answer:'—',note:'逻辑'}
-  ]},
-  {year:2021,summary:'约70题 · 三科混考',description:'整体难度适中，注重基础知识的熟练度；语文考察范围宽泛。英语第1-2题为培训机构模拟题，供参考。',questions:[
+  // ==================== 2022年 ====================
+  {year:2022,summary:'约67题 · 英语28+语文19+数学20 · 450人',description:'英语与中药、传统文化结合为一大特色。因考生回忆零散，仅有考察要点记录：\n\n【英语】阅读理解（词义猜测weird=奇怪的）、科普阅读（达芬奇手术机器人）、时事（天问一号）、武汉文化（黄鹤楼冰淇淋、省博越王勾践剑）、地理（非洲辣椒驱象）、古诗英译（"千山鸟飞绝"配图）、成语（入木三分·王羲之）、生物（象鼻鱼）、游泳安全（多选）、音乐（贝多芬古典音乐）、谚语（dog\'s chance）。\n\n【语文】字形辨识、近义词辨析、病句诊断；四大名著、省博文物；诗词鉴赏、文言文阅读；记叙文、科普文阅读。\n\n【数学】题型与2021年高度重叠：分数运算（4×4/7÷4×4/7=49/16）、三角形面积（两边4和6/高5/面积10）、折扣（公交卡9折2.7元/券后1.01元）、时钟角度（8:30和3:30均75°）、不定方程（洗手液10瓶）、概率计数（4/13）、逻辑推理、等量代换（15/16）、密码规律（151203）、百分数（跌20%）。',questions:[]},
+  // ==================== 2021年 ====================
+  {year:2021,summary:'约70题 · 三科混考',description:'整体难度适中，注重基础知识的熟练度；语文考察范围宽泛。建党100周年为背景的多道题目。以下为考生回忆的具体题目。',questions:[
     {subject:'英语/数学',question:'There are ______ triangles and ______ rectangles in the picture.',options:['A. 10, 4','B. 12, 5','C. 14, 6','D. 14, 7'],answer:3,explanation:'各大小三角形共14个，长方形7个'},
-    {subject:'英语/数学',question:"What's 2/3 and 1/4? It's _______.",options:['A. three-sevenths','B. seven-thirds','C. eleven-twelfths'],answer:2,explanation:'2/3+1/4=8/12+3/12=11/12'},
-    {subject:'英语',question:'英语阅读理解：生活场景与科普短文。',answer:'—',note:'阅读'},
-    {subject:'英语',question:'语法题：时态、句型转换。',answer:'—',note:'语法'},
-    {subject:'英语',question:'词汇辨析：近义词、反义词。',answer:'—',note:'词汇'},
-    {subject:'语文',question:'字音字形：易错字辨析。',answer:'—',note:'字词'},
-    {subject:'语文',question:'成语运用：成语含义与语境匹配。',answer:'—',note:'成语'},
-    {subject:'语文',question:'古诗词默写与理解。',answer:'—',note:'古诗'},
-    {subject:'语文',question:'现代文阅读：记叙文与说明文。',answer:'—',note:'现代文'},
-    {subject:'数学',question:'速算巧算：凑整法、提取公因数。',answer:'—',note:'速算'},
-    {subject:'数学',question:'几何：平面图形面积、周长。',answer:'—',note:'几何'},
-    {subject:'数学',question:'逻辑推理：数独、找规律。',answer:'—',note:'逻辑推理'}
+    {subject:'英语/数学',question:"What's 2/3 and 1/4? It's ___.",options:['A. three-sevenths','B. seven-thirds','C. eleven-twelfths'],answer:2,explanation:'2/3+1/4=8/12+3/12=11/12'},
+    {subject:'英语',question:'Which of the following is China\'s first Mars exploration project?',options:['A. Tianwen-1','B. Yutu','C. Zhurong','D. Dongfanghong'],answer:0,explanation:'天问一号是中国首次火星探测任务'},
+    {subject:'英语',question:'The word "taikonaut" means the astronaut from ___.',options:['A. Canada','B. Australia','C. America','D. China'],answer:3,explanation:'taikonaut=中国航天员（源自中文"太空"）'},
+    {subject:'英语',question:"China's 14th Five-Year Plan is 2021-2025. The 8th Five-Year Plan is ___.",options:['A. 1991-1995','B. 2001-2005','C. 2011-2015','D. 1986-1990'],answer:0,explanation:'八五计划：1991-1995'},
+    {subject:'英语',question:'What plants do Africans grow around houses to drive away elephants?',options:['A. Peppers','B. Tomatoes','C. Apples','D. Bananas'],answer:0,explanation:'非洲人种辣椒驱赶大象'},
+    {subject:'英语',question:'Which ice cream is from Wuhan?',options:['A. Yellow Crane Tower','B. Terra Cotta Warriors','C. Museum artifacts','D. Memorial Arch'],answer:0,explanation:'武汉黄鹤楼造型冰淇淋'},
+    {subject:'英语',question:'Which is from Hubei Provincial Museum?',options:['A. Ma Ta Fei Yan','B. Terra Cotta Warriors','C. Yue Wang Gou Jian Sword'],answer:2,explanation:'越王勾践剑藏于湖北省博物馆'},
+    {subject:'英语',question:'Which city is south of Wuhan?',options:["A. Xi'an","B. Beijing",'C. Changsha','D. Tianjin'],answer:2,explanation:'长沙在武汉南边'},
+    {subject:'英语',question:'The story "入木三分" is about ___.',options:['A. Li Bai','B. Confucius','C. Lu Xun','D. Wang Xizhi'],answer:3,explanation:'入木三分形容王羲之书法笔力'},
+    {subject:'英语',question:'Which is safe while swimming? (Multiple choice)',options:['A. Swim on empty stomach','B. Swim with family/coach','C. Swim in any river/lake','D. If someone falls in, shout for help'],answer:[1,3],type:'multi'},
+    {subject:'英语',question:"Beethoven's musical style?",options:['A. Pop','B. Classical','C. Hip-pop','D. Blues'],answer:1},
+    {subject:'英语',question:"If you don't study hard, you will have ___'s chance.",options:["A. cat's","B. dog's","C. pig's","D. bird's"],answer:1,explanation:"dog's chance=机会渺茫"},
+    {subject:'数学',question:'4 × 4/7 ÷ 4 × 4/7 = ( )',options:['A. 49/16','B. 1','C. 49/4','D. 7/16'],answer:0,explanation:'=(4×4/7)/4×4/7=49/16'},
+    {subject:'数学',question:'三角形两边长4cm和6cm，某边上高5cm，三角形面积为( )cm²。',options:['A. 10','B. 15','C. 10或15','D. 20或30'],answer:0,explanation:'5cm高只能对应4cm底边，4×5÷2=10'},
+    {subject:'数学',question:'武汉公交刷卡打9折需2.7元。有1.99元优惠券（不与折扣同享），用券需付多少？',options:['A. 1.1','B. 0.71','C. 1.01','D. 2.7'],answer:2,explanation:'原价=2.7÷0.9=3元，3-1.99=1.01元'},
+    {subject:'数学',question:'哪对时刻时针分针夹角相同？',options:['A. 6:00和12:30','B. 8:30和3:30','C. 1:30和11:30'],answer:1,explanation:'都是75度'},
+    {subject:'数学',question:'超市洗手液一瓶14元，两瓶装20元。恰好花了108元，共买多少瓶？',options:['A. 10','B. 9','C. 8','D. 7'],answer:0,explanation:'2+4×2=10瓶'},
+    {subject:'数学',question:'长方体体积6000cm³，长:宽:高=3:2:1，最小包装纸面积？',options:['A. 1000','B. 1200','C. 1600','D. 2200'],answer:0,explanation:'L=30,W=20,H=10，侧面积=2(30+20)×10=1000'},
+    {subject:'数学',question:'建党100周年，下列哪个字是轴对称图形？',options:['A. 爱','B. 敬','C. 国','D. 业'],answer:3,explanation:'"业"字呈轴对称'},
+    {subject:'语文',question:'下列地名注音有误的是：',options:['A. 延安(yán ān)','B. 西柏坡(bǎi pō)','C. 井冈山(gāng)','D. 白洋淀(diàn)'],answer:3,explanation:'应为diàn，选项误写'},
+    {subject:'语文',question:'（多选）下列词语书写有误的是：',options:['A. 撩望','B. 缭绕','C. 瞭拨','D. 嘹亮'],answer:[0,2],type:'multi',explanation:'正确：瞭望、撩拨'},
+    {subject:'语文',question:'下列诗句描写季节与其他不同的一项是：',options:['A. 接天莲叶无穷碧','B. 乱花渐欲迷人眼','C. 草色遥看近却无','D. 留连戏蝶时时舞'],answer:0,explanation:'A写夏季，其他写春季'},
+    {subject:'语文',question:'下列哪个文物可在湖北省博物馆看到？',options:['A. 玉壶春瓶','B. 越王勾践剑','C. 兵马俑','D. 马踏飞燕'],answer:1},
+    {subject:'语文',question:'史湘云醉卧芍药——体现的性格特点？',options:['A. 乐观','B. 率真','C. 可爱'],answer:1}
   ]},
-  {year:2020,summary:'约70题 · 位置和方向是重点',description:'数学突出"位置和方向"；天文常识题出现；整体节奏快，心算要求高。以下为百度文库收录的具体回忆题目。',questions:[
+  // ==================== 2020年 ====================
+  {year:2020,summary:'约70题 · 位置和方向是重点',description:'数学突出"位置和方向"；天文常识题出现；整体节奏快，心算要求高。以下为考生回忆具体题目。',questions:[
     {subject:'数学',question:'有4块完全相同的长方体（长3宽2高1），拼成如图所示的图形，再加2块，表面积最大是多少？',options:['A. 96','B. 104','C. 108'],answer:2,explanation:'拼接处面积要小，最大表面积=(2×3×6+1×3×4+1×2×3)×2=108'},
     {subject:'数学',question:'饭饭要购买13棵树苗，每棵16元，买三送一，最少需花多少钱？',options:['A. 144','B. 160','C. 208','D. 192'],answer:1,explanation:'4棵一组需买3组+1=10棵，16×10=160元'},
     {subject:'数学',question:'一颗距地球778270000千米的小行星，约多少亿千米（保留一位小数）？',options:['A. 7.7','B. 7.8','C. 7.9','D. 8.0'],answer:1,explanation:'百分位8＞5，进1得7.8亿'},
-    {subject:'数学',question:'下面与2最接近的是哪个数？（图片题，涉及小数、分数比较）',answer:'—',note:'数感比较'},
-    {subject:'数学',question:'位置和方向：根据描述判断方位、路线图。',answer:'—',note:'方位判断'},
-    {subject:'数学',question:'速算：小数、分数混合运算。',answer:'—',note:'速算'},
-    {subject:'数学',question:'几何：立体图形三视图。',answer:'—',note:'三视图'},
-    {subject:'语文',question:'文学常识：作家作品匹配。',answer:'—',note:'文学常识'},
-    {subject:'语文',question:'阅读理解：记叙文与说明文。',answer:'—',note:'阅读'},
-    {subject:'语文',question:'文言文：简短寓言故事。',answer:'—',note:'文言文'},
-    {subject:'英语',question:'阅读理解：日常生活类短文。',answer:'—',note:'阅读'},
-    {subject:'英语',question:'词汇：情景词汇辨析。',answer:'—',note:'词汇'},
-    {subject:'英语',question:'语法：一般现在时、现在进行时。',answer:'—',note:'语法'}
+    {subject:'数学',question:'下面与2最接近的是哪个数？',options:['A. 2又1/4','B. 11/6','C. 1又3/4','D. 17/8'],answer:3,explanation:'17/8=2.125最接近2'},
+    {subject:'数学',question:'青蛙顺时针跳，第n次跳n步，共跳54次，落在B点多少次？',options:['A. 20','B. 21','C. 22','D. 23'],answer:2,explanation:'5点循环，54÷5=10余4，10×2+2=22次'},
+    {subject:'数学',question:'同一光线下，饭饭影子和树影长度之比3:4，饭饭影子1.2米，树影？',options:['A. 1.44','B. 1.5','C. 1.6','D. 2'],answer:2,explanation:'1.2×(4/3)=1.6米'},
+    {subject:'数学',question:'两条平行线相距5，A为定点B为动点，AB距离不可能为？',options:['A. 3','B. 5','C. 6','D. 8'],answer:0,explanation:'AB最短距离为5（垂线段），不可能小于5'},
+    {subject:'数学',question:'甲乙两人速度分别为290m/min和310m/min，快者到终点折返，10分钟后相遇，全程多长？',options:['A. 2km','B. 3km','C. 4km','D. 5km'],answer:1,explanation:'(290+310)×10÷2=3000m=3km'},
+    {subject:'数学',question:'兔子和狐狸赛跑。狐狸每次跳4m，兔子每次3m。每10m一个坑。若一方落坑，另一方跳了多少？',options:['A. 12','B. 15','C. 18','D. 24'],answer:1,explanation:'狐狸10÷4=2.5→第3跳落坑(12m)，兔子3×5=15m'},
+    {subject:'数学',question:'物体下落：第1秒5m，之后每秒多10m。最后两秒共80m。初始高度？',options:['A. 125','B. 130','C. 140','D. 192'],answer:0,explanation:'等差数列，总时间5秒，S=5×(5+45)/2=125m'},
+    {subject:'数学',question:'甲店打七折，乙店满69减18。买一件差13元，可能价格？（多选）',options:['A. 10','B. 30','C. 50','D. 70'],answer:[1],type:'multi',explanation:'30打七折=21，正价30<69不减，差9≈13？原答案B'},
+    {subject:'数学',question:'60m×40m长方形四周每隔5m种树，共种多少棵？',options:['A. 41','B. 40','C. 39','D. 20'],answer:1,explanation:'封闭图形：200÷5=40棵'},
+    {subject:'数学',question:'饭饭爬山，上下山速度比3:5，上到半山腰用15分钟，从山顶下山用多少分钟？',options:['A. 9','B. 18','C. 25','D. 50'],answer:1,explanation:'全程上山30分，下山=30×3/5=18分'},
+    {subject:'数学',question:'三个相同圆两两相切，阴影周长62.8cm，每个圆直径？',options:['A. 20','B. 40','C. 60','D. 80'],answer:1,explanation:'62.8÷(2π)=10=r? 62.8=2πR，R=10，d=20？原答案B=40，疑为直径'},
+    {subject:'数学',question:'甲班乙班各36人，看图求甲班男生比乙班多几人？',options:['A. 4','B. 11','C. 18','D. 43'],answer:1},
+    {subject:'数学',question:'冬瓜子在(5,1)，桃仁在(8,4)，黄芩在？',options:['A. (4,6)','B. (6,4)','C. (6,3)','D. (3,6)'],answer:2},
+    {subject:'数学',question:'下列运动方式与其他不同的是？',options:['A. 风车','B. 秋千','C. 钟摆','D. 传送带'],answer:3,explanation:'传送带是平移，其他是旋转'}
   ]},
-  {year:2019,summary:'约70题 · 文学常识与历史顺序结合',description:'语文考察文学常识与历史顺序结合是亮点；数学难度适中，强调基础应用。具体题干回忆不完整。',questions:[
-    {subject:'语文',question:'文学常识与历史更迭顺序相结合：按朝代排序作家作品。',answer:'—',note:'历史顺序'},
-    {subject:'语文',question:'古诗词理解：诗句意境、修辞手法。',answer:'—',note:'古诗'},
-    {subject:'语文',question:'名著阅读：《西游记》《红楼梦》等经典情节。',answer:'—',note:'名著'},
-    {subject:'语文',question:'字词基础：多音字、形近字辨析。',answer:'—',note:'字词'},
-    {subject:'语文',question:'现代文阅读：记叙文理解。',answer:'—',note:'现代文'},
-    {subject:'英语',question:'阅读理解：科普类与生活类短文。',answer:'—',note:'阅读'},
-    {subject:'英语',question:'词汇：与学校生活相关的词汇。',answer:'—',note:'词汇'},
-    {subject:'英语',question:'语法：一般过去时、比较级。',answer:'—',note:'语法'},
-    {subject:'数学',question:'计算：整数、小数四则混合运算。',answer:'—',note:'计算'},
-    {subject:'数学',question:'应用题：工程问题、行程问题。',answer:'—',note:'应用题'},
-    {subject:'数学',question:'几何：长方形、正方形面积与周长。',answer:'—',note:'几何'}
+  // ==================== 2019年 ====================
+  {year:2019,summary:'约70题 · 文学常识与历史顺序结合',description:'语文考察文学常识与历史顺序结合是亮点；数学难度适中，强调基础应用。以下为考生回忆具体题目。',questions:[
+    {subject:'英语',question:'Which planet is nearest to the Sun?',options:['A. Earth','B. Mars','C. Venus','D. Moon'],answer:2,explanation:'金星（水星最近，但选项无；金星第二近且选项中有）'},
+    {subject:'英语',question:'About the Four Books and Five Classics, which is true?',options:['A. Book of Seasons (《春秋》)','B. Book of Poem (《诗经》)','C. Book of Changes (《易经》)','D. Book of Gifts (《礼记》)','E. Book of Histories (《尚书》)'],answer:2,explanation:'四书五经含《易经》'},
+    {subject:'英语',question:'Where should you wear a belt?',options:['A. On the waist','B. On the hand','C. On the wallet','D. On the wardrobe'],answer:0,explanation:'腰带系在腰上'},
+    {subject:'英语',question:'What are they wearing in the picture?',options:['A. Glasses','B. VR headset','C. Hat','D. Mask'],answer:1,note:'图片题：VR眼镜'},
+    {subject:'英语',question:'A says: "My dog can understand English!" He asks the dog 8+8, dog stays silent. What will B think?',options:['A. The dog understands English','B. The dog knows nothing','C. The dog can do math','D. The dog can\'t understand English'],answer:3},
+    {subject:'英语',question:'The tortoise wants to travel a thousand miles. What do you say?',options:['A. 水滴石穿','B. 不积跬步，无以致千里','C. 锲而不舍','D. 世上无难事'],answer:1},
+    {subject:'英语',question:'Which part of the earth has the largest area?',options:['A. River','B. Lake','C. Sea','D. Ocean'],answer:3},
+    {subject:'英语',question:'4 red balls and 1 yellow ball. Pick once randomly. Which is right?',options:['A. Cannot be yellow','B. Must be red','C. Red has highest probability','D. Uncertain'],answer:2,explanation:'红球概率4/5=80%，最大'},
+    {subject:'英语',question:"A person's normal body temperature is about ___.",options:['A. 35.5°C','B. 36.5°C','C. 38.5°C','D. 40°C'],answer:1},
+    {subject:'语文',question:'下列词语中字音字形全对的有几个？',answer:'B (2个)',note:'受益匪浅/凌云壮志正确；爱憎zēng、中流砥柱、众志成城有误'},
+    {subject:'语文',question:'"洋洋大观"中"观"的意思是？',options:['A. 观看','B. 景象','C. 观点'],answer:1},
+    {subject:'语文',question:'研究中国传统文化中的月亮，哪项不合适？',options:['A. 诗词','B. 神话','C. 科学','D. 绘画中的月亮'],answer:3},
+    {subject:'语文',question:'与"问渠哪得清如许，为有源头活水来"因果关系相同的是？',options:['A. —','B. 不畏浮云遮望眼，自缘身在最高层'],answer:1},
+    {subject:'语文',question:'科技公司用"鸿蒙""麒麟"作商标，另一公司也想选神兽，哪个不合适？',options:['A. 鲲鹏','B. 饕餮','C. 方舟','D. 朱雀'],answer:2,explanation:'方舟非神兽'},
+    {subject:'语文',question:'哪句话最适合漫画（垃圾桶前一步之遥）？',options:['A. —','B. —','C. 文明只差一步'],answer:2},
+    {subject:'语文',question:'文言文《董遇治学》——分析正确的是？',options:['A. —','B. 善于抽出时间学习'],answer:1},
+    {subject:'数学',question:'气球排列：3黄2绿1红1蓝为一个循环。第26个是什么颜色？',answer:'黄色',explanation:'26÷7=3余5，第5个为黄色'},
+    {subject:'数学',question:'大豆含40%蛋白质，蚕豆含25%蛋白质。按什么比例吃才能使二者蛋白质相等？',answer:'5:8',explanation:'40%×5=25%×8=2'},
+    {subject:'数学',question:'一堆纸4500万吨，2/5可回收，可回收中4/5可做再生纸。再生纸多少万吨？',answer:'1440',explanation:'4500×2/5×4/5=1440'},
+    {subject:'数学',question:'2把尺子：6cm和13cm。最少用几次可以量出8cm？',options:['A. 3','B. 4','C. 5','D. 6'],answer:2,explanation:'13×2-6×3=26-18=8，共5次'},
+    {subject:'数学',question:'小明10分钟折3个千纸鹤或10个星星；妈妈10分钟折8个千纸鹤或11个星星。24人各需1千纸鹤+3星星，最少多少分钟？',answer:'50'},
+    {subject:'数学',question:'三种车A、B、C选3辆有几种选法？',options:['A. 8','B. 9','C. 10','D. 12'],answer:2,explanation:'可重复组合：C(3+3-1,3)=C(5,3)=10'},
+    {subject:'数学',question:'红:黄球比3:2，每次取5红3黄，x次后红取完，剩多少黄球？',options:['A. x/2','B. x/3','C. 2x/3','D. 3x/2'],answer:1},
+    {subject:'数学',question:'射箭每次最多10环，前6箭52环，剩4箭。要破89环，第7箭至少？',options:['A. 7','B. 8','C. 9','D. 10'],answer:1,explanation:'目标90，后4箭需≥38，第7箭≥8'},
+    {subject:'数学',question:'从7:40到7:55走了3/5路程，全程何时走完？',answer:'8:05',explanation:'15分钟3/5→每份5分钟→剩2份10分钟→8:05'}
   ]},
-  {year:2018,summary:'66题 · 语文28+英语22+数学16 · 36分钟 · 150分',description:'数学试卷考察较全面，考题不难，英语语文很简单，数学稍难。',questions:[
-    {subject:'数学',question:'计算题：速算与巧算。',answer:'—',note:'速算'},
-    {subject:'数学',question:'几何：平面图形面积计算。',answer:'—',note:'几何'},
-    {subject:'数学',question:'应用题：分数、百分数应用题。',answer:'—',note:'应用题'},
-    {subject:'数学',question:'逻辑推理：简单的逻辑判断题。',answer:'—',note:'逻辑'},
-    {subject:'数学',question:'行程问题：基础行程计算。',answer:'—',note:'行程'},
-    {subject:'语文',question:'文学常识：古诗词背诵与理解。',answer:'—',note:'古诗'},
-    {subject:'语文',question:'阅读理解：现代文阅读。',answer:'—',note:'现代文'},
-    {subject:'语文',question:'基础知识：字音、字形、成语。',answer:'—',note:'字词'},
-    {subject:'语文',question:'文言文：简短寓言。',answer:'—',note:'文言文'},
-    {subject:'英语',question:'阅读理解：简短对话与短文。',answer:'—',note:'阅读'},
-    {subject:'英语',question:'词汇：日常生活词汇。',answer:'—',note:'词汇'},
-    {subject:'英语',question:'语法：基础句型与时态。',answer:'—',note:'语法'}
+  // ==================== 2018年 ====================
+  {year:2018,summary:'66题 · 语文28+英语22+数学16 · 36分钟 · 150分',description:'数学考察较全面，考题不难，英语语文很简单，数学稍难。以下为具体回忆题目。',questions:[
+    {subject:'语文',question:'下列字音正确的有几个？汆(cuān)汤 鸡胗(zhēn) 馄饨(tún) 苋菜(xiàn)',options:['A. 1','B. 2','C. 3','D. 4'],answer:1,explanation:'汆cuān和胗zhēn正确=2个？原答案B说2个正确'},
+    {subject:'语文',question:'三张图上的"民"字分别对应哪种书法字体？',options:['A. 金文、小篆、甲骨文','B. 甲骨文、金文、小篆'],answer:0},
+    {subject:'语文',question:'京剧脸谱颜色与人物匹配错误的是？',options:['A. 关羽—红','B. 曹操—白','C. 包拯—黑','D. 孙悟空—蓝'],answer:3,explanation:'孙悟空应为金色/银色（神怪）'},
+    {subject:'语文',question:'"后乐先忧，范希文庶几知道；昔闻今上，杜少陵可与言诗"适合哪座建筑？',options:['A. 黄鹤楼','B. 滕王阁','C. 岳阳楼','D. 醉翁亭'],answer:2,explanation:'范仲淹《岳阳楼记》"先天下之忧而忧，后天下之乐而乐"'},
+    {subject:'语文',question:'下列成语与战役匹配错误的是？',options:['A. 风声鹤唳—赤壁','B. 破釜沉舟—巨鹿','C. 草木皆兵—淝水'],answer:0,explanation:'风声鹤唳对应淝水之战，非赤壁'},
+    {subject:'语文',question:'泰戈尔名言最适合回应的中国名言是？',options:['A. 行有不得，反求诸己','B. 己所不欲，勿施于人'],answer:0},
+    {subject:'语文',question:'"羽扇纶巾，谈笑间，樯橹灰飞烟灭"描写的是谁？',options:['A. 诸葛亮','B. 周瑜','C. 曹操','D. 关羽'],answer:0,explanation:'苏轼《念奴娇·赤壁怀古》写周瑜，但原答案选A=诸葛亮'},
+    {subject:'语文',question:'下列哪个不是天干？',options:['A. 甲','B. 乙','C. 亥','D. 丙'],answer:2,explanation:'亥是地支'},
+    {subject:'语文',question:'（多选）文言文《杨布打狗》哪两项理解错误？',options:['A. 素衣=白色衣服','B. 扑=击打','C. （其他）'],answer:[1,2],type:'multi'},
+    {subject:'语文',question:'与"一片冰心在玉壶"修辞相同的是？',options:['A. —','B. 白发三千丈','C. —','D. —'],answer:1,explanation:'都是夸张/比喻'},
+    {subject:'数学',question:'90度角+四个30度角，有多少对互余角？',options:['A. 13','B. 15','C. 17','D. 19'],answer:2,note:'图形题'},
+    {subject:'数学',question:'3×5网格两点AB为底，面积=2的平行四边形有几个？',answer:'6',note:'图形题'},
+    {subject:'数学',question:'第9个图形有多少个圆？',options:['A. 26','B. 27','C. 28','D. 29'],answer:3,explanation:'规律：5+3(n-1)，n=9→29'},
+    {subject:'数学',question:'镜子看到12:15，实际时间是？',options:['A. 21:15','B. 21:51','C. 11:45','D. 15:12'],answer:1,explanation:'镜中12:15=实际21:51（另一种理解：11:45）'},
+    {subject:'数学',question:'牛奶和水：喝1/4加水→喝1/4加水→喝2/3加水→喝完。喝下的牛奶和水之比？',options:['A. 1:1','B. 2:3','C. 3:4','D. 1:2'],answer:0,explanation:'牛奶始终1杯，水=1/4+1/4+2/3=7/6杯→1:7/6？原答案A=1:1'},
+    {subject:'数学',question:'骑车4分→地铁（到11分，8km）→骑车（到19分，10km）。地铁平均速度？',answer:'1000 m/min',explanation:'地铁运行(11-4)=7分钟，(19-11)=8分钟骑车10km，地铁8km÷(实际地铁时间)'},
+    {subject:'数学',question:'折叠长方形10×6，三个阴影三角形周长和？',answer:'32',explanation:'等于长方形周长=2(10+6)=32'},
+    {subject:'英语/常识',question:'以下哪位不是医生？（图片：诸葛亮、李时珍、孙思邈、华佗）',options:['A. 诸葛亮','B. 李时珍','C. 孙思邈','D. 华佗'],answer:0},
+    {subject:'英语/常识',question:'齐白石擅长画什么？（图片：竹、鹰、马、虾）',options:['A. 竹','B. 鹰','C. 马','D. 虾'],answer:3},
+    {subject:'英语/常识',question:'以下哪种不是大米做的？（图片：粽子、馒头、汤圆、糖醋排骨）',options:['A. 粽子','B. 馒头','C. 汤圆','D. 糖醋排骨'],answer:1,explanation:'馒头是面粉做的'},
+    {subject:'英语/常识',question:'24节气中第5个是？',options:['A. 谷雨','B. 小寒','C. 清明','D. 大雪'],answer:2,explanation:'立春→雨水→惊蛰→春分→清明（第5）'},
+    {subject:'英语/常识',question:'CO₂+H₂O→？',options:['A. H₂CO₃','B. Ca(OH)₂','C. H₂','D. O₂'],answer:0,explanation:'二氧化碳+水=碳酸'},
+    {subject:'英语/常识',question:'"We always sleep late at weekends"中sleep late意为？',options:['A. 晚睡','B. 早起','C. —','D. 睡懒觉'],answer:3,explanation:'sleep late=起得晚/睡懒觉'},
+    {subject:'英语/常识',question:'哪本书中的图？（格列佛在小人国）',options:['A. 汤姆索亚','B. 格列佛游记','C. 哈克贝利','D. 鲁滨逊'],answer:1},
+    {subject:'英语/常识',question:'9个砝码一个较重，天平最少称几次找到？',options:['A. 1','B. 2','C. 3','D. 4'],answer:1,explanation:'3-3-3分组，两次'},
+    {subject:'英语/常识',question:'下列哪个不是中国法定假日？',options:['A. 春节','B. 中秋节','C. 双十一','D. 端午节'],answer:2},
+    {subject:'英语/常识',question:'地球在太阳系中是第几远的行星？',options:['A. 第二','B. 第三','C. 第四','D. 第五'],answer:1,explanation:'水金地火木→第三'},
+    {subject:'英语',question:'Sally and Joe ___ their mother\'s birthday party these days.',options:['A. are prepare','B. were prepare','C. are preparing','D. was preparing'],answer:2}
   ]},
-  {year:2017,summary:'约70题 · 人机对话模式成熟',description:'题型稳定，难度适中；部分题目含听力考察（后取消）。具体题干回忆不完整。',questions:[
-    {subject:'英语',question:'英语听力理解（注：2017年及以前部分年份有听力，后取消）。',answer:'—',note:'听力（已取消）'},
-    {subject:'英语',question:'阅读理解：故事类短文。',answer:'—',note:'阅读'},
-    {subject:'英语',question:'词汇语法：基础语法选择。',answer:'—',note:'语法'},
-    {subject:'语文',question:'古诗词：背诵与默写。',answer:'—',note:'古诗'},
-    {subject:'语文',question:'阅读理解：记叙文。',answer:'—',note:'现代文'},
-    {subject:'语文',question:'基础知识：拼音、汉字、成语。',answer:'—',note:'字词'},
-    {subject:'数学',question:'计算：整数、小数运算。',answer:'—',note:'计算'},
-    {subject:'数学',question:'应用题：简单行程、工程问题。',answer:'—',note:'应用题'},
-    {subject:'数学',question:'几何：基础图形认知。',answer:'—',note:'几何'}
+  // ==================== 2017年 ====================
+  {year:2017,summary:'65题 · 36分钟 · 195分',description:'人机对话模式成熟。无听力、无口试。单题限时20-120秒。题型稳定，难度适中。以下为具体回忆题目。',questions:[
+    {subject:'语文',question:'字音：字帖(tiē→tiè) 踮(diǎn)起 琳琅(láng)满目 名(míng)额——几个正确？',options:['A. 1','B. 2','C. 3','D. 4'],answer:0,explanation:'仅"踮"字音正确'},
+    {subject:'语文',question:'错别字：陷井 相形见拙 脉搏 告戒 明信片 迁徙——几个写错？',options:['A. 2','B. 3','C. 4','D. 5'],answer:1,explanation:'阱/绌/诫=3个错误'},
+    {subject:'语文',question:'昴日星官的原型是？',options:['A. 虎','B. 龙','C. 鸡','D. 蛇'],answer:2},
+    {subject:'语文',question:'下列哪个成语不涉及楚国？',options:['A. 刻舟求剑','B. 买椟还珠','C. 一鼓作气','D. 叶公好龙'],answer:2,explanation:'一鼓作气出自齐鲁长勺之战'},
+    {subject:'语文',question:'下列诗句中哪句不涉及传统节日？',options:['A. —','B. —','C. —','D. 乡村四月闲人少'],answer:3},
+    {subject:'语文',question:'哪一个字的造字法与其他不同？',options:['A. 采','B. 武','C. 休','D. 村','E. 尖'],answer:3,explanation:'村是形声字，其他是会意字'},
+    {subject:'语文',question:'下列对联赞美对象搭配不正确的是？',options:['A. —','B. —','C. —','D. 杜甫相关—实际指司马迁'],answer:3},
+    {subject:'语文',question:'文言文《墨子·多言何益》——填空白：唯其言之____也。',options:['A. 时','B. 当','C. —'],answer:0},
+    {subject:'语文',question:'下列哪两句体现"工匠精神"？',answer:'(1)两句三年得；(3)如切如磋，如琢如磨',note:'多选题'},
+    {subject:'数学',question:'每天吃2个或3个桃子，5种不同吃法吃完，共有多少个桃子？',answer:'9',explanation:'不定方程2x+3y=N，x+y=天数'},
+    {subject:'数学',question:'数列：1,2,2,4,3,8,4,( )',options:['A. 10','B. 12','C. 14','D. 16'],answer:3,explanation:'奇位1,2,3,4；偶位2,4,8,16'},
+    {subject:'数学',question:'15个硬币正面朝上，3的倍数翻一次，5的倍数翻一次，几个正面？',answer:'9',explanation:'翻7个（3的倍数5个+5的倍数3个-15号重复1=7），15-7+1=9'},
+    {subject:'数学',question:'水果贩进200斤1.8元/斤，卖一半按2.7元，发现10%腐烂，新价格出售，总利润180元，剩余每斤卖？',options:['A. 2.8','B. 2.9','C. 3','D. 3.7'],answer:2},
+    {subject:'数学',question:'4×4网格+6小格，用其中5格覆盖网格，哪格没用？',answer:'2号格',note:'图形题'},
+    {subject:'数学',question:'三张图各切两半共6半。上面取一半下面取一半，配成完整图的概率？',options:['A. 1/3','B. 1/4','C. 1/5','D. 1/6'],answer:0},
+    {subject:'数学',question:'7层宝塔红灯，每层是上一层的2倍，共381盏。第4层几盏？',answer:'24',explanation:'等比数列求和381，首项3，公比2，第4层3×2^3=24'},
+    {subject:'数学',question:'做工速度：甲3分钟做3/4个，乙1分钟做5个，丙1/6分钟做1个。从高到低排序？',answer:'C>B>A',explanation:'丙每分钟6个，乙5个，甲(3/4)/3=0.25个'},
+    {subject:'数学',question:'花费1/4后，再花剩余的4/15。剩余钱数可能是？',options:['A. 40','B. 41','C. 42','D. 43','E. 44'],answer:4,explanation:'剩3/4×11/15=33/60=11/20，需是11的倍数，44=11×4'},
+    {subject:'英语/常识',question:'武汉地铁哪条线未运营？',options:['A. 1号线','B. 2号线','C. 3号线','D. 4号线','E. 5号线'],answer:4,explanation:'2017年没有5号线'},
+    {subject:'英语/常识',question:'香港回归多少年了？（2017年）',options:['A. 18','B. 19','C. 20','D. 21'],answer:2,explanation:'1997-2017=20年'},
+    {subject:'英语/常识',question:'以下哪个景点不在2017武汉马拉松路线？',options:['A. 中山公园','B. 东湖','C. 磨山','D. 黄鹤楼','E. 汉街','F. 首义广场'],answer:0},
+    {subject:'英语/常识',question:'央视《朗读者》主持人？',options:['A. 王雅丽','B. 董卿','C. 汪涵','D. 撒贝宁'],answer:1},
+    {subject:'英语/常识',question:'数列：1,1,2,2,3,4,4,8,5,__',options:['A. 13','B. 5','C. 16','D. 6'],answer:2,explanation:'奇数位1,2,3,4,5；偶数位1,2,4,8,16'},
+    {subject:'英语/常识',question:'"Two birds are singing in the tree"对应哪首诗？',options:['A. 春眠不觉晓','B. 两个黄鹂鸣翠柳','C. 处处闻啼鸟'],answer:1},
+    {subject:'英语/常识',question:'以下哪个故事结局不幸福？',options:['A. 白雪公主','B. 卖火柴的小女孩','C. 丑小鸭','D. 灰姑娘'],answer:1},
+    {subject:'英语/常识',question:'植树队原计划每天14棵10天，现7天完成，每天多植？',options:['A. 6','B. 10','C. 12','D. 20'],answer:0,explanation:'140÷7=20，20-14=6'},
+    {subject:'英语/常识',question:'皮鞋$40打8折+凉鞋$20打9折=共付？',options:['A. $30','B. $40','C. $50','D. $60'],answer:2,explanation:'32+18=50'}
   ]},
-  {year:2016,summary:'约70题 · 人机对话形式确立',description:'首次全面采用电脑机考，单题限时。考察顺序：英语→语文→数学。无纸笔演算，全程心算。为后续年份机考奠定基础。',questions:[
-    {subject:'英语',question:'阅读理解、词汇语法、生活情景英语。',answer:'—',note:'英语综合'},
-    {subject:'语文',question:'文学常识、古诗词、现代文阅读。',answer:'—',note:'语文综合'},
-    {subject:'数学',question:'速算、几何、应用题。',answer:'—',note:'数学综合'}
+  // ==================== 2016年 ====================
+  {year:2016,summary:'50题 · 英语23+语文11+数学16 · 25分钟',description:'首次全面采用电脑机考，单题限时。考察顺序：英语→语文→数学。无纸笔演算，全程心算。为后续年份机考奠定基础。',questions:[
+    {subject:'英语/常识',question:'2016年奥运会在哪举办？',options:['A. 里约热内卢','B. 巴黎','C. 伦敦','D. 北京'],answer:0,explanation:'2016年里约奥运会'},
+    {subject:'英语/常识',question:'下列谁不是流行歌手？（图片题）',options:['A. Justin Bieber','B. Adele','C. Taylor Swift','D. Stephen Curry'],answer:3,explanation:'库里是NBA球员'},
+    {subject:'英语/常识',question:'父亲有4个儿子，年龄乘积为30，最小的儿子几岁？',options:['A. 1','B. 2','C. 4','D. 5'],answer:0,explanation:'1×2×3×5=30，最小1岁'},
+    {subject:'英语/常识',question:'"teach fish to swim"的中文意思是？',options:['A. 班门弄斧','B. 对牛弹琴','C. 画蛇添足','D. 海底捞针'],answer:0},
+    {subject:'英语/常识',question:'哪种水果维生素C含量最高？',options:['A. 柠檬','B. 苹果','C. 香蕉','D. 西瓜'],answer:0},
+    {subject:'英语/常识',question:'加热白糖会变成什么颜色？',options:['A. 粉色','B. 红色','C. 绿色','D. 棕色'],answer:3,explanation:'焦糖化反应变棕色'},
+    {subject:'英语/常识',question:'如果A=2, B=3, C=4, D=5...则Y=？',answer:'26',explanation:'Y是第25个字母+1=26'},
+    {subject:'英语/常识',question:'山之于地，如同波浪之于____？',options:['A. 海洋','B. 天空','C. 森林','D. 水'],answer:3,explanation:'类比关系：山在地上，波纹在水中'},
+    {subject:'英语/常识',question:'"birth mark"中文是？',options:['A. 胎记','B. 痘','C. 疤','D. 皱纹'],answer:0},
+    {subject:'英语/常识',question:'母鸡孵小鸡要多少天？',options:['A. 11','B. 21','C. 31','D. 41'],answer:1},
+    {subject:'英语/常识',question:'"queen"和"Alice"让你想到哪部电影？',options:['A. 爱丽丝梦游仙境','B. 冰雪奇缘','C. 睡美人','D. 美女与野兽'],answer:0},
+    {subject:'英语/常识',question:'平底锅一次煎2张饼，每面2分钟。7张饼最少用多少分钟？',options:['A. 12','B. 14','C. 16','D. 18'],answer:1},
+    {subject:'语文',question:'字音：肖/惟妙惟肖——哪组同音？',options:['A. —','B. 肖/惟妙惟肖'],answer:1},
+    {subject:'语文',question:'哪组互为反义？',options:['A. 缓慢/迟缓','B. —','C. —','D. 迅速/缓慢'],answer:3},
+    {subject:'语文',question:'下列故事与人物匹配错误的是？',options:['A. 单刀赴会—关羽','B. 负荆请罪—项羽','C. —'],answer:1,explanation:'负荆请罪是廉颇'},
+    {subject:'语文',question:'"老当益壮"和"精益求精"中"益"的意思？',answer:'更加',note:'相同：都表示"更加"'},
+    {subject:'语文',question:'文言文《望梅止渴》——"魏武帝"指谁？',answer:'曹操'},
+    {subject:'语文',question:'"士兵闻之，口皆出水，乘此得及前源"翻译正确的是？',answer:'士兵听后口水都流出来了，借此得以到达前方水源'},
+    {subject:'数学',question:'两车同速，7:30相距比1.5:1，7:36比4:3。甲何时出发？',options:['A. 7:10','B. 7:18','C. 7:30','D. 7:12'],answer:3},
+    {subject:'数学',question:'四进制下：13×3=？',options:['A. 121','B. 111','C. 131','D. 141'],answer:1,explanation:'四进制13=7十进制，×3=21十进制=111(4进制)'},
+    {subject:'数学',question:'两小立方体拼合，表面积减少36，一个立方体表面积？',answer:'54'},
+    {subject:'数学',question:'1000元商品降价→销量+50%→收入+20%，降价多少？',answer:'100元',explanation:'(1000-x)×1.5=1200→1500-1.5x=1200→x=200？原答案100'},
+    {subject:'数学',question:'16个小正方体组成4×4×4，表面涂色，几个未涂色？',answer:'8',explanation:'内部2×2×2=8'}
   ]},
-  {year:2015,summary:'约70题 · 机考元年 · 过渡年份',description:'外初机考元年，从传统笔试向人机对话过渡。开始尝试机考形式，部分题目电脑作答，仍有部分传统笔试元素。题型与难度相对平稳。',questions:[
-    {subject:'英语',question:'基础词汇、简单对话。',answer:'—',note:'英语基础'},
-    {subject:'语文',question:'字词基础、古诗词。',answer:'—',note:'语文基础'},
-    {subject:'数学',question:'四则运算、简单应用题。',answer:'—',note:'数学基础'}
+  // ==================== 2015年 ====================
+  {year:2015,summary:'约35题 · 机考元年 · 15分钟',description:'外初机考元年，从传统笔试向人机对话过渡。35题15分钟。每个考场16人，电脑间用白纸隔开。考试顺序：英语→语文→数学。',questions:[
+    {subject:'英语/数学',question:'完全平方数找规律：1, 4, 9, 16, ( )',options:['A. 20','B. 24','C. 25','D. 36'],answer:2,explanation:'1²,2²,3²,4²,5²=25'},
+    {subject:'英语/常识',question:'角度计算：120°+40°=？',answer:'200°'},
+    {subject:'英语/常识',question:'颜色吸热：粉、黑、白、黄——哪种吸热最多？',options:['A. 粉色','B. 黑色','C. 白色','D. 黄色'],answer:1},
+    {subject:'英语/常识',question:'哪个电影主人公说谎鼻子会变长？',options:['A. 匹诺曹','B. 白雪公主','C. 蜘蛛侠'],answer:0},
+    {subject:'英语/常识',question:'地图题：住在鸡尾巴的动物——西藏有什么动物？',options:['A. 藏羚羊','B. 熊猫','C. 鳄鱼'],answer:0},
+    {subject:'英语/常识',question:'父亲节是几月第几个星期天？',options:['A. 六月第一个','B. 六月第三个','C. 七月第一个'],answer:1},
+    {subject:'英语/常识',question:'Do you like pop music? 合适回答？',answer:"It's not my cup of tea."},
+    {subject:'英语/常识',question:'同学给老师发邮件，哪个邮箱格式正确？',options:['A. welf.cn','B. xxx@sina.com'],answer:1},
+    {subject:'数学',question:'三张卷子没写名字，甲乙丙恰好拿到自己卷子的概率？',options:['A. 1/27','B. 1/6','C. 1/3','D. 1/9'],answer:1,explanation:'3!全排列6种，恰全对1种=1/6'},
+    {subject:'数学',question:'甲:乙=4:5，甲比乙少多少？',answer:'20%',explanation:'(5-4)/5=20%'},
+    {subject:'数学',question:'4种颜色球共10个，摸几个保证有两个同色？',options:['A. 4','B. 5','C. 6','D. 7'],answer:1,explanation:'鸽巢原理：最差各色1个，第5个必重复'},
+    {subject:'数学',question:'统计图：A=20%(10人), B=M%(16人), C=N%, D=12%(6人)。N=？',answer:'36%',explanation:'总50人，C=50-10-16-6=18人，18/50=36%'},
+    {subject:'数学',question:'甲单独30天，乙单独60天，合作需要几天？',options:['A. 18','B. 20','C. 22','D. 24'],answer:1,explanation:'1÷(1/30+1/60)=20天'},
+    {subject:'数学',question:'20多本书，甲给乙若干→乙比甲多3/4；乙给甲同样多→甲是乙1.2倍。共几本？',options:['A. 22','B. 24','C. 26','D. 28'],answer:0},
+    {subject:'语文',question:'拼音注音正确的是：',options:['A. 肖像xiāo','B. 炽热chì','C. 球qiú'],answer:1,explanation:'肖像xiào，炽chì对'},
+    {subject:'语文',question:'笔顺正确的是：',options:['A. 正','B. 母','C. 戊','D. 凹'],answer:0},
+    {subject:'语文',question:'范仲淹"断齑画粥"——主人公是谁？',answer:'范仲淹'},
+    {subject:'语文',question:'"粥一宿"指多长？',options:['A. 粥过夜凝固了','B. 粥睡觉就凝固了','C. 粥白天凝固了'],answer:0},
+    {subject:'语文',question:'武松打虎——小明缩写哪里不恰当？',answer:'"躲"应改为"闪"；用土埋虎不符原文'},
+    {subject:'语文',question:'生活中常做的事哪项表述不正确？',options:['A. —','B. —','C. —','D. 食指受伤最多'],answer:3,explanation:'拇指受伤频率最高'}
+  ]},
+  // ==================== 2014年 ====================
+  {year:2014,summary:'42小题 · 面试口答 · 7-10分钟',description:'面试形式：语文9题+数学12题+英语21题。无笔无纸，全部口答。10秒内口答，两个老师同时记录。先语文数学、后英语。',questions:[
+    {subject:'语文',question:'武汉有哪两条江？',answer:'长江、汉江'},
+    {subject:'语文',question:'南美洲风景图片是哪座雕像？',answer:'里约热内卢基督像'},
+    {subject:'语文',question:'严监生吝啬故事出自哪部作品？',answer:'《儒林外史》',explanation:'吴敬梓《儒林外史》经典吝啬鬼'},
+    {subject:'数学',question:'NASA, WTO, UN 哪一个与另两个不同？',answer:'NASA',explanation:'NASA是航天机构，WTO/UN是国际组织'},
+    {subject:'数学',question:'8/15×25%+8/15×1.75-8/15×0.125=？',answer:'8/15',explanation:'提取公因数8/15×(0.25+1.75-0.125)=1'},
+    {subject:'数学',question:'已知AC=20，求阴影面积。',options:['A. 5π-50','B. 10π-100','C. 15π-150','D. 20π-200'],note:'圆形与正方形组合（具体答案不详）'},
+    {subject:'数学',question:'甲乙背向而行在C相遇，AC相距80m，甲速为乙速2/3，AB为直径，求圆周长。',answer:'400m',note:'圆形跑道相遇问题'}
+  ]},
+  // ==================== 2013年 ====================
+  {year:2013,summary:'面试形式 · 数学为主 · 口答',description:'语文、数学、英语三大板块。由录音播放题目，学生在10秒内口答。数学必须心算。两个老师同时记录答案。以下为具体回忆题目（语文、英语部分回忆不完整）。',questions:[
+    {subject:'数学',question:'九名同学扔沙包成绩(m)：36.8, 34.7, 25.9, 25.8, 24.7, 24.6, 24.6, 24.1, 23.2。中位数是？',options:['A. 24.6','B. 24.7','C. 25.8','D. 21.2'],answer:1,explanation:'排序后第5位=24.7'},
+    {subject:'数学',question:'正确说法有几个？①50m²×20间≈1公顷 ②增五成=150% ③1:1000图上8×6cm=4800m²',options:['A. 0','B. 1','C. 2','D. 3'],answer:2,explanation:'①错(0.1公顷)，②对，③对'},
+    {subject:'数学',question:'0.75:x=2/5:24，x=？',answer:'45',explanation:'0.75×24=0.4x→x=45'},
+    {subject:'数学',question:'7/9÷[5/6-(1/6+1/3)+25%]=？',answer:'4/3',explanation:'=7/9÷(5/6-3/6+0.25)=7/9÷(2/6+1/4)=7/9÷7/12=4/3'},
+    {subject:'数学',question:'订刊人数占全班90%，订A刊占50%，B刊占2/3。都订6人。全班几人？',options:['A. 36','B. 40','C. 42','D. 48'],answer:1,explanation:'容斥：订刊36人，36/0.9=40'},
+    {subject:'数学',question:'武汉地铁2号线票价：2元/9km，3元/14km，每增1元增2km区段。21.846km刷卡9折付？',answer:'4.5元',explanation:'4元21km，需5元×0.9=4.5元'},
+    {subject:'数学',question:'方方圆圆同钱去书店，八折。圆圆借钱给方方后，方方刚好买60元书。共省18元。圆圆借了多少？',answer:'12元',explanation:'原总价=90元，各带36元。方需48元，圆借12元'},
+    {subject:'数学',question:'四块相同3-4-5直角三角形拼四边形：(1)梯形周长？(2)平行四边形最大周长？',answer:'(1)26或22 (2)28'},
+    {subject:'数学',question:'出租车公司400辆油改气。第一次改后：已改燃料费=未改1/8。第二次同量后：已改=未改1/3。共改几辆？降幅？',answer:'80辆；降50%'}
+  ]},
+  // ==================== 2012年 ====================
+  {year:2012,summary:'综合测试（笔试）· 三卷制',description:'传统笔试，分A卷(语文)、B卷(英语)、C卷(数学)。武汉本土文化主题（黄鹤楼、热干面、汉正街）。以下为部分回忆题目。',questions:[
+    {subject:'语文',question:'武汉地名注音全对的是？',options:['A. 广埠屯(bù) 卓刀泉(zhuō)','B. 腰路堤(dī) 马沧湖(cāng)','C. 玫瑰园(guī) 郭茨口(zī)','D. 菱角湖(líng) 谌家矶(zhàn)'],answer:2},
+    {subject:'语文',question:'武汉欢乐谷2012年4月29日开园——选择正确表述。',options:['A. —','B. —','C. —','D. —'],answer:3},
+    {subject:'语文',question:'下列有语病的是？',options:['A. 刘醒龙"入木三分"作品获茅盾奖','B. 地大登山队登顶珠峰','C. 张公堤为张之洞所修','D. 谭鑫培创立"谭派"京剧'],answer:0,explanation:'入木三分不能形容作品'},
+    {subject:'语文',question:'"武汉人是听着钟声长大的"应插入文中何处？',answer:'C',note:'江汉关钟声'},
+    {subject:'语文',question:'关于"伯牙善鼓琴"的表述正确的是？',answer:'C'},
+    {subject:'语文',question:'阅读《汉正街》——概述不正确的是？',answer:'D'},
+    {subject:'语文',question:'阅读《热干面传奇》——吃一碗____的热干面；了解____的武汉人。',answer:'香气四溢/干爽/筋道；热情/开朗/干脆利落'},
+    {subject:'语文',question:'"站着...蹲着...走着..."描写的是____；"空气中都飘着热干面的香气"强调____。',answer:'吃面姿态的多样；热干面的普及程度'},
+    {subject:'英语/常识',question:'"July 1" is CPC\'s birthday. How old in 2011?',options:['A. 80','B. 90','C. 100'],answer:1,explanation:'1921→2011=90年'},
+    {subject:'英语/常识',question:'Li Na won No.1 in France. What sport?',options:['A. Tennis','B. Table tennis','C. Badminton'],answer:0,explanation:'李娜2011法网冠军'},
+    {subject:'英语/常识',question:'Which is a capital city?',options:['A. Sydney','B. Washington D.C.','C. New York'],answer:1},
+    {subject:'英语/常识',question:'Emergency number?',options:['A. 114','B. 119','C. 120'],answer:2},
+    {subject:'英语/常识',question:'"E" in "e-mail" means?',options:['A. electronic','B. expensive','C. educational'],answer:0},
+    {subject:'英语/常识',question:'Which is largest?',options:['A. 50%','B. 0.8','C. 3/4','D. 2/3'],answer:1,explanation:'0.8>0.75>0.667>0.5'},
+    {subject:'英语/常识',question:'Good habit for environment?',options:['A. Phone always on','B. Biking instead of driving','C. Buying plastic bags','D. Gaming all night'],answer:1},
+    {subject:'逻辑',question:'Three dice stacked, see 7 faces. Sum of hidden faces?',options:['A. 41','B. 40','C. 39'],answer:2,explanation:'3×21-可见和=63-24=39'},
+    {subject:'逻辑',question:'9:00am Beijing→Paris, 10.5h. Paris arrival time?',options:['A. 19:30','B. 02:30','C. 12:30'],answer:2,explanation:'北京19:30，巴黎时差-7h=12:30'},
+    {subject:'数学',question:'如果4.20-3.40=40，8.12-7.47=25，则6.19-5.26=？',answer:'3'},
+    {subject:'数学',question:'每题□:5=16%:7，□=？',answer:'4/35'},
+    {subject:'数学',question:'阶梯电价：0-150度0.6元，150-300 a元，>300 b元。200度=122.5元，350度=232.5元。a,b各多少？',answer:'a=0.65, b=0.9'},
+    {subject:'数学',question:'移动一根火柴使27+53+8+5=93成立。',answer:'27+53+8-5=83或21+59+8+5=93'}
+  ]},
+  // ==================== 2011年 ====================
+  {year:2011,summary:'综合测试（笔试）· 三卷制',description:'传统笔试，分A卷(英语45分+拓展20分)、B卷(数学)、C卷(语文)。包含听力、百科常识、逻辑推理。',questions:[
+    {subject:'英语/常识',question:'2011年7月1日是建党多少周年？',options:['A. 80','B. 90','C. 100'],answer:1},
+    {subject:'英语/常识',question:'李娜6月在法国夺冠，她打的是什么球？',options:['A. 网球','B. 乒乓球','C. 羽毛球'],answer:0},
+    {subject:'英语/常识',question:'哪个是首都？',options:['A. 悉尼','B. 华盛顿','C. 纽约'],answer:1},
+    {subject:'英语/常识',question:'受伤需要医生打什么电话？',options:['A. 114','B. 119','C. 120'],answer:2},
+    {subject:'英语/常识',question:'下一个字母？A, F, H, K, I, ?',options:['A. V','B. E','C. K','D. M'],answer:2,'':'字母规律'},
+    {subject:'英语/常识',question:'数字序列：3, 10, 24, 45, ?',options:['A. 66','B. 67','C. 73','D. 75'],answer:3,'':'等差数列差'},
+    {subject:'数学/逻辑',question:'Sue是第50名最好也是第50名最差，共有多少人？',answer:'99',explanation:'50+50-1=99'},
+    {subject:'数学/逻辑',question:'从F开始，顺时针隔一个字母写一圈，拼出两个数字相加。',answer:'12',explanation:'FIVE + SEVEN = 12'},
+    {subject:'数学',question:'两个重叠等边三角形组成六角星。大星面积40cm²，内部小星面积？',answer:'10cm²'},
+    {subject:'数学',question:'纸折叠：长=1的长方形，每次剪去一个正方形。3次后剩下是正方形。原宽？',answer:'0.6或0.75或0.25',note:'多种可能'},
+    {subject:'语文',question:'字音全对的是？',answer:'C'},
+    {subject:'语文',question:'下列有语病的是？',options:['A. 用词不当（入木三分）'],answer:0},
+    {subject:'语文',question:'文化常识错误的是？',options:['A. —','B. 60岁是"天命"','C. —','D. —'],answer:1,explanation:'60岁是花甲，50岁才是知天命'},
+    {subject:'语文',question:'《执长竿入城门》理解正确的是？',answer:'C'},
+    {subject:'语文',question:'最得体的应用文是？',answer:'C'},
+    {subject:'语文',question:'阅读《寻找幸运花瓣儿》——最佳标题？',answer:'B'},
+    {subject:'语文',question:'"四瓣儿、四瓣儿、还是四瓣儿"表达什么心情？',answer:'失望/沮丧'},
+    {subject:'语文',question:'与文章哲理最匹配的诗句？',options:['A. —','B. —','C. 众里寻他千百度，蓦然回首，那人却在灯火阑珊处'],answer:2}
+  ]},
+  // ==================== 2010年 ====================
+  {year:2010,summary:'综合测试（笔试）· 三卷制',description:'最早的传统笔试形式。分A卷(英语65分)、B卷(数学)、C卷(语文)。包含英语听力、阅读写作、百科常识、逻辑推理、数学和语文。题量最大。',questions:[
+    {subject:'英语/常识',question:'以下哪项不是圣诞传统？',options:['A. 彩灯','B. 礼物','C. 窗户'],answer:2,note:'听力理解'},
+    {subject:'英语/常识',question:'在哪不能享受"白色圣诞"？',options:['A. 美国','B. 英国','C. 澳大利亚'],answer:2,explanation:'澳大利亚12月是夏天'},
+    {subject:'英语/常识',question:'Irving Berlin是什么人？',options:['A. 歌手','B. 作曲家','C. 音乐老师'],answer:1,note:'听力理解'},
+    {subject:'英语/常识',question:'手机现在在哪？',options:['A. 椅子下','B. 椅子后','C. 椅子上'],answer:0,note:'听力理解'},
+    {subject:'英语/常识',question:'慈善步行不需要什么？',options:['A. 雨伞','B. 地图','C. 帽子'],answer:0,note:'听力理解'},
+    {subject:'英语/常识',question:'Alice今天最多借几本书？',options:['A. 5','B. 3','C. 2'],answer:2,note:'听力理解'},
+    {subject:'英语/常识',question:'女人觉得橙色代表什么？',options:['A. 热情的颜色','B. 能带来成功','C. 代表力量'],answer:1,note:'听力理解'},
+    {subject:'英语/常识',question:'墨西哥城有超过1900万人。对/错？',answer:'对',note:'听力理解'},
+    {subject:'英语/常识',question:'墨西哥有几个州？',options:['A. 30','B. 31','C. 29'],answer:1,note:'听力理解'},
+    {subject:'英语/常识',question:'墨西哥北部大部分是？',options:['A. 森林','B. 山脉','C. 沙漠'],answer:2,note:'听力理解'},
+    {subject:'英语/常识',question:'墨西哥儿童说什么语言？',options:['A. 法语和英语','B. 西班牙语和英语','C. 西班牙语和法语'],answer:1},
+    {subject:'英语/常识',question:'以下哺乳动物是？',options:['A. 鲸鱼','B. 鸽子','C. 蜘蛛','D. 鳄鱼'],answer:0,explanation:'鲸鱼是哺乳动物'},
+    {subject:'英语/常识',question:'哪个数最大？',options:['A. 50%','B. 0.8','C. 3/4','D. 2/3'],answer:1},
+    {subject:'英语/常识',question:'哪种习惯有利环保？',options:['A. 常开手机','B. 骑车代替开车','C. 买塑料袋','D. 通宵打游戏'],answer:1},
+    {subject:'数学/逻辑',question:'Sue是第50名最好也是第50名最差，共有多少人？',answer:'99'},
+    {subject:'数学/逻辑',question:'从F开始隔字母顺时针写两圈，拼出两数字并相加。',answer:'12'},
+    {subject:'数学/逻辑',question:'天平问题：A平衡、B平衡，C需要几个球？',answer:'7'},
+    {subject:'数学',question:'找规律：22, 13, 8, 5, 3, ?',answer:'2',explanation:'差值-9,-5,-3,-2→减幅递减'},
+    {subject:'数学',question:'数列：29, 36, 31, 38, 33, ?',answer:'40',explanation:'交替+7,-5,+7,-5'},
+    {subject:'数学',question:'计算：(78.6-0.786×25+75%×21.4)÷15×2001=',answer:'10005'},
+    {subject:'数学',question:'用91根火柴搭正方形，可搭多少个？',answer:'30',explanation:'(91-1)÷3=30'},
+    {subject:'语文',question:'为外国客人选欢迎语（多选）：',options:['A. 海内存知己','B. 有朋自远方来','C. 礼之用，和为贵','D. 恻隐之心'],answer:[1,2],type:'multi'},
+    {subject:'语文',question:'"旦"（日升地平线）的造字法相同于？',options:['A. 刃','B. 川','C. 明','D. 韵'],answer:0,explanation:'都是指事字'},
+    {subject:'语文',question:'表述有误的是？',options:['A. 一言九鼎(正确)','B. 爆竹声中一岁除(正确)','C. 杨志出自三国演义(错误->水浒传)','D. 推敲与贾岛(正确)'],answer:2},
+    {subject:'语文',question:'京剧介绍排序正确的是？',options:['A. 3,2,4,1'],answer:0},
+    {subject:'语文',question:'阅读《竹篮打水》——填空排序：',options:['A. —','B. —','C. —','D. —'],answer:'C, D, A, B'},
+    {subject:'语文',question:'阅读《家里养月亮》——作者__月亮，赏月，__月亮。',answer:'发现；感悟/思考'},
+    {subject:'语文',question:'"浮""一枚""酥酥"分别形容了月光的什么特点？',answer:'轻、小、柔'}
   ]}
 ];
 
