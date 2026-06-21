@@ -1,8 +1,8 @@
 
 // 武汉外初机考训练 - Service Worker v3
-var CACHE_NAME = 'wuhan-exam-v3';
-var STATIC_CACHE = 'wuhan-exam-static-v3';
-var IMAGE_CACHE = 'wuhan-exam-images-v3';
+var CACHE_NAME = 'wuhan-exam-v4';
+var STATIC_CACHE = 'wuhan-exam-static-v4';
+var IMAGE_CACHE = 'wuhan-exam-images-v4';
 
 // 核心文件：离线必须
 var staticFiles = [
