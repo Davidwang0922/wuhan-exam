@@ -213,6 +213,10 @@ body{
   background:var(--orange-light); border-color:var(--orange);
 }
 .exam-option.multi-selected .opt-letter{background:var(--orange); color:#fff}
+.exam-option.correct-highlight{background:#dcfce7; border-color:var(--success)}
+.exam-option.correct-highlight .opt-letter{background:var(--success); color:#fff}
+.exam-option.wrong-highlight{background:#fef2f2; border-color:var(--danger)}
+.exam-option.wrong-highlight .opt-letter{background:var(--danger); color:#fff}
 
 .exam-submit{
   display:flex; justify-content:center; padding:6px 0 12px;
@@ -520,6 +524,7 @@ function renderScreen(screen, data){
     case 'practiceList': renderPracticeList(); break;
     case 'practiceDetail': renderPracticeDetail(data.yearIndex); break;
     case 'wrongBook': renderWrongBook(); break;
+    case 'wrongBookPractice': renderWrongBookPractice(); break;
   }
   main.scrollTop = 0;
 }
@@ -1197,7 +1202,7 @@ function renderWrongBook(){
   }
 
   html += '</div><div class="results-actions" style="margin-top:18px;padding-bottom:24px">' +
-    '<button class="primary" onclick="startWrongBookExam()">🧪 错题重练</button>' +
+    '<button class="primary" onclick="startWrongBookPractice()">🧪 错题重练</button>' +
     '<button class="danger-btn" onclick="clearWrongBook()">🗑️ 清空错题本</button>' +
     '<button onclick="navigate(\'home\')">🏠 返回首页</button>' +
   '</div></div>';
@@ -1206,48 +1211,228 @@ function renderWrongBook(){
 }
 
 // Start an exam with only wrong book questions
-function startWrongBookExam(){
+// ==================== 错题重练（逐题练习模式） ====================
+function startWrongBookPractice(){
   var book = getWrongBook();
   if(book.length === 0){
     alert('错题本为空！');
     return;
   }
 
-  // Convert wrong book items to exam format
-  var questions = [];
-  for(var i = 0; i < book.length; i++){
-    var item = book[i];
-    questions.push({
-      question: item.question,
-      options: item.options,
-      answer: item.answer,
-      explanation: item.explanation,
-      type: item.type,
-      _wrongBookFp: item.fingerprint
-    });
-  }
-
-  // Create a single-section exam
-  var sections = [
-    {name: '错题重练', cls: 'english', timePerQ: 50, questions: questions}
-  ];
-
-  appState.exam = {
-    sections: sections,
-    sectionIndex: 0,
+  appState.practice = {
+    questions: book,
     currentIndex: 0,
-    userAnswers: {},
-    completed: false,
-    timedOut: false,
-    timerInterval: null,
     selectedOptions: null,
-    isWrongBookExam: true
+    answered: false
   };
 
   navStack = [];
-  appState.screen = 'exam';
+  appState.screen = 'wrongBookPractice';
   updateBackBtn();
-  renderExam();
+  renderWrongBookPractice();
+}
+
+function renderWrongBookPractice(){
+  var p = appState.practice;
+  var book = getWrongBook();
+
+  // If all questions done
+  if(p.currentIndex >= p.questions.length){
+    var remaining = getWrongBook().length;
+    if(remaining === 0){
+      main.innerHTML = '<div class="results-screen"><div style="text-align:center;padding:40px 20px">' +
+        '<div style="font-size:64px;margin-bottom:16px">🎉</div>' +
+        '<h2 style="color:var(--success)">全部掌握！</h2>' +
+        '<p style="color:var(--text-secondary);margin-top:8px">所有错题都已做对，错题本已清空！</p>' +
+        '<div class="results-actions" style="margin-top:20px">' +
+          '<button onclick="navigate(\'wrongBook\')">📕 返回错题本</button>' +
+          '<button onclick="navigate(\'home\')">🏠 返回首页</button>' +
+        '</div></div></div>';
+    } else {
+      main.innerHTML = '<div class="results-screen"><div style="text-align:center;padding:40px 20px">' +
+        '<div style="font-size:64px;margin-bottom:16px">📋</div>' +
+        '<h2>本轮练习结束</h2>' +
+        '<p style="color:var(--text-secondary);margin-top:8px">还有 <b style="color:var(--danger)">' + remaining + '</b> 道错题需要继续练习</p>' +
+        '<div class="results-actions" style="margin-top:20px">' +
+          '<button class="primary" onclick="startWrongBookPractice()">🔄 继续练习</button>' +
+          '<button onclick="navigate(\'wrongBook\')">📕 返回错题本</button>' +
+        '</div></div></div>';
+    }
+    updateWrongBookHint();
+    return;
+  }
+
+  var item = p.questions[p.currentIndex];
+  // Check if this question is still in the wrong book (might have been removed)
+  if(!isInWrongBook({question: item.question, answer: item.answer, type: item.type})){
+    // Already removed, skip to next
+    p.currentIndex++;
+    p.selectedOptions = null;
+    p.answered = false;
+    renderWrongBookPractice();
+    return;
+  }
+
+  p.selectedOptions = (item.type === 'multi') ? [] : null;
+  p.answered = false;
+
+  var labels = ['A','B','C','D','E','F'];
+  var optionsHTML = '';
+  if(item.options && item.options.length > 0){
+    for(var i = 0; i < item.options.length; i++){
+      optionsHTML += '<div class="exam-option" id="wopt' + i + '" onclick="selWrongOpt(' + i + ')">' +
+        '<span class="opt-letter">' + labels[i] + '</span>' +
+        '<span>' + String(item.options[i]).replace(/^[A-F][.、]?\s*/, '') + '</span>' +
+      '</div>';
+    }
+  }
+
+  var totalQ = p.questions.length;
+  var multiTag = item.type === 'multi' ? '<span class="multi-tag">多选</span> ' : '';
+
+  progressInfo.textContent = '错题重练 · 第' + (p.currentIndex + 1) + '/' + totalQ + '题';
+
+  main.innerHTML = '<div class="exam-screen">' +
+    '<div class="exam-header">' +
+      '<span class="subject-badge english">错题重练</span>' +
+      '<span class="q-counter">第 ' + (p.currentIndex + 1) + ' / ' + totalQ + ' 题</span>' +
+    '</div>' +
+    '<div class="exam-question" id="wQuestionBox">' +
+      '<div class="q-num">第 ' + (p.currentIndex + 1) + ' 题</div>' +
+      '<div class="q-text">' + multiTag + item.question + '</div>' +
+      optionsHTML +
+    '</div>' +
+    '<div class="submit-row">' +
+      '<button onclick="submitWrongAns()" id="wSubmitBtn">✓ 确认答案</button>' +
+    '</div>' +
+    '<div id="wFeedback" style="margin-top:12px"></div>' +
+  '</div>';
+}
+
+function selWrongOpt(index){
+  var p = appState.practice;
+  if(p.answered) return;
+  var item = p.questions[p.currentIndex];
+
+  if(item.type === 'multi'){
+    var sel = p.selectedOptions;
+    var pos = -1;
+    for(var i = 0; i < sel.length; i++){
+      if(sel[i] === index){ pos = i; break; }
+    }
+    var el = document.getElementById('wopt' + index);
+    if(pos >= 0){
+      sel.splice(pos, 1);
+      if(el) el.classList.remove('multi-selected');
+    } else {
+      sel.push(index);
+      if(el) el.classList.add('multi-selected');
+    }
+  } else {
+    var all = document.querySelectorAll('#wQuestionBox .exam-option');
+    for(var i = 0; i < all.length; i++){
+      all[i].classList.remove('selected');
+    }
+    var el = document.getElementById('wopt' + index);
+    if(el) el.classList.add('selected');
+    p.selectedOptions = [index];
+  }
+}
+
+function submitWrongAns(){
+  var p = appState.practice;
+  if(p.answered) return;
+
+  var item = p.questions[p.currentIndex];
+  var isCorrect = false;
+
+  if(item.type === 'multi'){
+    var userAns = (p.selectedOptions && p.selectedOptions.length > 0) ? p.selectedOptions.slice().sort() : [];
+    var correctAns = item.answer.slice().sort();
+    isCorrect = userAns.length === correctAns.length && userAns.every(function(v, i){ return v === correctAns[i]; });
+  } else {
+    var ua = (p.selectedOptions && p.selectedOptions.length > 0) ? p.selectedOptions[0] : -1;
+    isCorrect = (ua === item.answer);
+  }
+
+  p.answered = true;
+
+  // Update wrong book
+  if(isCorrect){
+    removeFromWrongBook(item.fingerprint);
+  }
+
+  // Disable options
+  var all = document.querySelectorAll('#wQuestionBox .exam-option');
+  for(var i = 0; i < all.length; i++){
+    all[i].style.pointerEvents = 'none';
+  }
+
+  // Show correct answer
+  var labels = ['A','B','C','D','E','F'];
+  var correctDisplay;
+  if(item.type === 'multi'){
+    correctDisplay = item.answer.map(function(a){ return labels[a]; }).join('、');
+  } else {
+    correctDisplay = labels[item.answer] || String(item.answer);
+  }
+
+  // Highlight correct/wrong options
+  if(item.type === 'multi'){
+    for(var j = 0; j < item.answer.length; j++){
+      var el = document.getElementById('wopt' + item.answer[j]);
+      if(el) el.classList.add('correct-highlight');
+    }
+    if(p.selectedOptions){
+      for(var k = 0; k < p.selectedOptions.length; k++){
+        if(item.answer.indexOf(p.selectedOptions[k]) < 0){
+          var el2 = document.getElementById('wopt' + p.selectedOptions[k]);
+          if(el2) el2.classList.add('wrong-highlight');
+        }
+      }
+    }
+  } else {
+    var correctEl = document.getElementById('wopt' + item.answer);
+    if(correctEl) correctEl.classList.add('correct-highlight');
+    if(p.selectedOptions && p.selectedOptions[0] >= 0 && p.selectedOptions[0] !== item.answer){
+      var wrongEl = document.getElementById('wopt' + p.selectedOptions[0]);
+      if(wrongEl) wrongEl.classList.add('wrong-highlight');
+    }
+  }
+
+  // Show feedback
+  var feedbackHTML = '';
+  if(isCorrect){
+    feedbackHTML = '<div style="background:var(--green-light);border:1px solid var(--green);border-radius:12px;padding:12px;margin-top:8px">' +
+      '<div style="font-weight:700;color:var(--success);font-size:16px">✅ 回答正确！</div>' +
+      '<div style="margin-top:4px;color:var(--text-secondary);font-size:13px">已从错题本中移除</div>';
+  } else {
+    feedbackHTML = '<div style="background:#fef2f2;border:1px solid var(--danger);border-radius:12px;padding:12px;margin-top:8px">' +
+      '<div style="font-weight:700;color:var(--danger);font-size:16px">❌ 回答错误</div>' +
+      '<div style="margin-top:4px">正确答案：<b>' + correctDisplay + '</b></div>';
+  }
+  if(item.explanation){
+    feedbackHTML += '<div style="margin-top:6px;color:var(--text-secondary);font-size:13px">💡 ' + item.explanation + '</div>';
+  }
+  feedbackHTML += '</div>';
+
+  document.getElementById('wFeedback').innerHTML = feedbackHTML;
+
+  // Update button
+  var submitBtn = document.getElementById('wSubmitBtn');
+  if(submitBtn){
+    submitBtn.textContent = p.currentIndex + 1 >= p.questions.length ? '完成' : '下一题 →';
+    submitBtn.onclick = advanceWrongPractice;
+  }
+}
+
+function advanceWrongPractice(){
+  var p = appState.practice;
+  p.currentIndex++;
+  p.selectedOptions = null;
+  p.answered = false;
+  updateWrongBookHint();
+  renderWrongBookPractice();
 }
 
 function clearWrongBook(){
