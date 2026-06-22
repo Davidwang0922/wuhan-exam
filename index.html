@@ -898,16 +898,18 @@ function renderResults(){
 
   var total = allQ.length;
   var correctCount = 0;
-  var subjR = {'英语':{total:0,correct:0}, '语文':{total:0,correct:0}, '数学':{total:0,correct:0}};
+  var subjR = {};
   var reviewData = [];
 
   for(var i = 0; i < allQ.length; i++){
     var ua = (ex.userAnswers[i] !== undefined) ? ex.userAnswers[i] : -1;
     var isCorrect = checkAns(allQ[i].q, ua);
-    subjR[allQ[i].subject].total++;
+    var subj = allQ[i].subject;
+    if(!subjR[subj]){ subjR[subj] = {total:0, correct:0}; }
+    subjR[subj].total++;
     if(isCorrect){
       correctCount++;
-      subjR[allQ[i].subject].correct++;
+      subjR[subj].correct++;
     }
     reviewData.push({
       q: allQ[i].q,
@@ -921,14 +923,30 @@ function renderResults(){
   var score = Math.round((correctCount / total) * 150);
   var rate = Math.round(correctCount / total * 100);
 
-  var subjects = ['英语','语文','数学'];
+  // Build score cards for all subjects that have questions
+  var subjectOrder = ['英语','语文','数学'];
+  var subjKeys = Object.keys(subjR);
+  // Sort: put known subjects in order, then add any others
   var cardsHTML = '';
-  for(var s = 0; s < subjects.length; s++){
-    var sb = subjects[s];
-    var sr = subjR[sb];
-    var cls = (sb === '英语') ? 'english' : (sb === '语文') ? 'chinese' : 'math';
-    cardsHTML += '<div class="score-card ' + cls + '">' +
-      '<div class="subj">' + sb + '</div>' +
+  for(var s = 0; s < subjectOrder.length; s++){
+    var sb = subjectOrder[s];
+    if(subjR[sb] && subjR[sb].total > 0){
+      var sr = subjR[sb];
+      var cls = (sb === '英语') ? 'english' : (sb === '语文') ? 'chinese' : 'math';
+      cardsHTML += '<div class="score-card ' + cls + '">' +
+        '<div class="subj">' + sb + '</div>' +
+        '<div class="pts">' + sr.correct + '/' + sr.total + '</div>' +
+        '<div class="rate">' + Math.round(sr.correct / Math.max(1,sr.total) * 100) + '%</div>' +
+      '</div>';
+    }
+  }
+  // Add any non-standard subjects (like 错题重练)
+  for(var k = 0; k < subjKeys.length; k++){
+    var key = subjKeys[k];
+    if(subjectOrder.indexOf(key) >= 0) continue; // Already added
+    var sr = subjR[key];
+    cardsHTML += '<div class="score-card english">' +
+      '<div class="subj">' + key + '</div>' +
       '<div class="pts">' + sr.correct + '/' + sr.total + '</div>' +
       '<div class="rate">' + Math.round(sr.correct / Math.max(1,sr.total) * 100) + '%</div>' +
     '</div>';
