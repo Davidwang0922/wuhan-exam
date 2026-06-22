@@ -256,6 +256,8 @@ body{
 .results-actions button:active{background:var(--blue); color:#fff}
 .results-actions button.primary{background:var(--blue); color:#fff; border-color:var(--blue)}
 .results-actions button.primary:active{background:var(--blue-dark)}
+.results-actions button.danger-btn{background:var(--danger); color:#fff; border-color:var(--danger)}
+.results-actions button.danger-btn:active{background:#b91c1c}
 
 /* ========== 答案查看 ========== */
 .answer-review{margin-top:8px}
@@ -362,6 +364,7 @@ body{
   .year-item:hover{background:var(--green-light); transform:translateX(4px); -webkit-transform:translateX(4px)}
   .results-actions button:hover{background:var(--blue); color:#fff}
   .results-actions button.primary:hover{background:var(--blue-dark)}
+  .results-actions button.danger-btn:hover{background:#b91c1c}
   .show-answer-btn:hover{background:var(--green); color:#fff}
   .results-header h1{font-size:30px}
   .results-header .score-big{font-size:68px}
@@ -516,12 +519,15 @@ function renderScreen(screen, data){
     case 'review': renderReview(); break;
     case 'practiceList': renderPracticeList(); break;
     case 'practiceDetail': renderPracticeDetail(data.yearIndex); break;
+    case 'wrongBook': renderWrongBook(); break;
   }
   main.scrollTop = 0;
 }
 
 // ==================== 首页 ====================
 function renderHome(){
+  // Will update wrongBookHint after render
+  setTimeout(updateWrongBookHint, 100);
   main.innerHTML = '<div class="home-screen">' +
     '<h1>武汉外初 · 人机对话模拟训练<small>历年真题全覆盖 · 为汪子堯加油 💪</small></h1>' +
     '<div class="cards" style="flex-direction:column;gap:12px">' +
@@ -573,10 +579,27 @@ function renderHome(){
           '<span class="icon" style="color:var(--orange)">⑫</span><h2 style="color:var(--orange)">真题训练十二</h2><p>2024年真题 · 58题</p>' +
         '</div>' +
       '</div>' +
+      '<div style="text-align:center;font-weight:700;font-size:15px;color:#7c3aed;margin-bottom:2px">🔮 2026年武外全英文预测考察模拟卷（共3套）</div>' +
+      '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px">' +
+        '<div class="card mock" onclick="startExam(14)" style="border-color:#7c3aed">' +
+          '<span class="icon" style="color:#7c3aed">⑭</span><h2 style="color:#7c3aed">预测卷一</h2><p>中国文化·武汉 · 42题</p>' +
+        '</div>' +
+        '<div class="card mock" onclick="startExam(15)" style="border-color:#7c3aed">' +
+          '<span class="icon" style="color:#7c3aed">⑮</span><h2 style="color:#7c3aed">预测卷二</h2><p>科技·逻辑·时事 · 44题</p>' +
+        '</div>' +
+        '<div class="card mock" onclick="startExam(16)" style="border-color:#7c3aed">' +
+          '<span class="icon" style="color:#7c3aed">⑯</span><h2 style="color:#7c3aed">预测卷三</h2><p>综合预测 · 48题</p>' +
+        '</div>' +
+      '</div>' +
       '<div class="card past" onclick="showPracticeList()">' +
         '<span class="icon">📚</span>' +
         '<h2>历年真题汇编</h2>' +
         '<p>2010—2025年真题全收录<br>按年份浏览 · 查看答案与解析</p>' +
+      '</div>' +
+      '<div class="card past" onclick="showWrongBook()" style="border-color:var(--danger)">' +
+        '<span class="icon">📕</span>' +
+        '<h2 style="color:var(--danger)">错题本</h2>' +
+        '<p id="wrongBookHint">自动收集错题 · 做对自动移除</p>' +
       '</div>' +
     '</div>' +
     '<div class="rules-box">' +
@@ -607,6 +630,9 @@ function startExam(mockSet){
   else if(mockSet === 11){ ENG = MOCK11_ENGLISH; CHI = MOCK11_CHINESE; MAT = MOCK11_MATH; }
   else if(mockSet === 12){ ENG = MOCK12_ENGLISH; CHI = MOCK12_CHINESE; MAT = MOCK12_MATH; }
   else if(mockSet === 13){ ENG = MOCK13_ENGLISH; CHI = MOCK13_CHINESE; MAT = MOCK13_MATH; }
+  else if(mockSet === 14){ ENG = MOCK14_ENGLISH; CHI = MOCK14_CHINESE; MAT = MOCK14_MATH; }
+  else if(mockSet === 15){ ENG = MOCK15_ENGLISH; CHI = MOCK15_CHINESE; MAT = MOCK15_MATH; }
+  else if(mockSet === 16){ ENG = MOCK16_ENGLISH; CHI = MOCK16_CHINESE; MAT = MOCK16_MATH; }
   else { ENG = MOCK_ENGLISH; CHI = MOCK_CHINESE; MAT = MOCK_MATH; }
   var sections = [
     {name: '英语', cls: 'english', timePerQ: 35, questions: ENG},
@@ -622,7 +648,9 @@ function startExam(mockSet){
     completed: false,
     timedOut: false,
     timerInterval: null,
-    selectedOptions: null
+    selectedOptions: null,
+    _mockSet: mockSet,
+    isWrongBookExam: false
   };
 
   navStack = [];
@@ -916,11 +944,26 @@ function renderResults(){
     '<div class="results-actions">' +
       '<button onclick="startExam()">🔄 重新考试</button>' +
       '<button class="primary" onclick="showReview()">📋 查看答案与解析</button>' +
+      (ex.isWrongBookExam ? '<button class="danger-btn" onclick="navigate(\'wrongBook\')">📕 返回错题本</button>' : '') +
       '<button onclick="navigate(\'home\')">🏠 返回首页</button>' +
     '</div>' +
   '</div>';
 
   appState._reviewData = reviewData;
+
+  // Sync wrong book
+  var mockSetNames = {
+    1: '模拟卷一', 2: '模拟卷二', 3: '模拟卷三', 4: '模拟卷四', 5: '模拟卷五', 6: '模拟卷六',
+    7: '真题训练七(2023)', 8: '真题训练八(2021)', 9: '真题训练九(2020)', 10: '真题训练十(2019)',
+    11: '真题训练十一(2018)', 12: '真题训练十二(2024)', 13: '真题训练十三(2025)',
+    14: '预测卷一', 15: '预测卷二', 16: '预测卷三'
+  };
+
+  // Detect which mock set was used
+  var mockSetName = '';
+  if(ex._mockSet) mockSetName = mockSetNames[ex._mockSet] || '';
+
+  syncWrongBook(reviewData, mockSetName);
 }
 
 function checkAns(q, ua){
@@ -993,6 +1036,209 @@ function renderReview(){
   '</div></div>';
 
   main.innerHTML = html;
+}
+
+// ==================== 错题本 ====================
+var WRONG_BOOK_KEY = 'wfls_exam_wrong_book';
+
+function getWrongBook(){
+  try {
+    var raw = localStorage.getItem(WRONG_BOOK_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch(e) {
+    return [];
+  }
+}
+
+function saveWrongBook(book){
+  try {
+    localStorage.setItem(WRONG_BOOK_KEY, JSON.stringify(book));
+  } catch(e) {}
+}
+
+// Generate a unique fingerprint for a question to identify it across exams
+function qFingerprint(q){
+  // Use question text (first 100 chars) + answer as fingerprint
+  var text = (q.question || '').substring(0, 100).replace(/\s+/g, ' ').trim();
+  var ans = Array.isArray(q.answer) ? q.answer.join(',') : String(q.answer);
+  return text + '|' + ans;
+}
+
+function addToWrongBook(q, subject, mockSetName){
+  var book = getWrongBook();
+  var fp = qFingerprint(q);
+  // Check if already exists
+  for(var i = 0; i < book.length; i++){
+    if(book[i].fingerprint === fp) return; // Already in book
+  }
+  book.push({
+    fingerprint: fp,
+    question: q.question,
+    options: q.options || [],
+    answer: q.answer,
+    explanation: q.explanation || '',
+    type: q.type || 'single',
+    subject: subject || '',
+    mockSet: mockSetName || '',
+    addedAt: new Date().toISOString()
+  });
+  saveWrongBook(book);
+  updateWrongBookHint();
+}
+
+function removeFromWrongBook(fingerprint){
+  var book = getWrongBook();
+  book = book.filter(function(item){ return item.fingerprint !== fingerprint; });
+  saveWrongBook(book);
+  updateWrongBookHint();
+}
+
+function isInWrongBook(q){
+  var book = getWrongBook();
+  var fp = qFingerprint(q);
+  for(var i = 0; i < book.length; i++){
+    if(book[i].fingerprint === fp) return true;
+  }
+  return false;
+}
+
+// After exam, sync wrong answers
+function syncWrongBook(reviewData, mockSetName){
+  for(var i = 0; i < reviewData.length; i++){
+    var r = reviewData[i];
+    if(r.isCorrect){
+      // If answered correctly, remove from wrong book
+      var fp = qFingerprint(r.q);
+      if(isInWrongBook(r.q)){
+        removeFromWrongBook(fp);
+      }
+    } else {
+      // If wrong, add to wrong book
+      addToWrongBook(r.q, r.subject, mockSetName);
+    }
+  }
+}
+
+function updateWrongBookHint(){
+  var hint = document.getElementById('wrongBookHint');
+  if(hint){
+    var count = getWrongBook().length;
+    hint.textContent = count > 0 ? '共' + count + '道错题 · 点击复习' : '自动收集错题 · 做对自动移除';
+  }
+}
+
+function showWrongBook(){
+  navigate('wrongBook');
+}
+
+function renderWrongBook(){
+  updateWrongBookHint();
+  var book = getWrongBook();
+  progressInfo.textContent = '错题本';
+
+  if(book.length === 0){
+    main.innerHTML = '<div class="results-screen"><div style="text-align:center;padding:40px 20px">' +
+      '<div style="font-size:64px;margin-bottom:16px">🎉</div>' +
+      '<h2 style="color:var(--success)">错题本为空！</h2>' +
+      '<p style="color:var(--text-secondary);margin-top:8px">继续加油，所有题目都已掌握！</p>' +
+      '<div class="results-actions" style="margin-top:20px">' +
+        '<button onclick="navigate(\'home\')">🏠 返回首页</button>' +
+      '</div>' +
+    '</div></div>';
+    return;
+  }
+
+  var labels = ['A','B','C','D','E','F'];
+  var html = '<div class="results-screen"><div style="text-align:center">' +
+    '<h2>📕 错题本</h2>' +
+    '<p style="color:var(--text-secondary);margin-bottom:4px">共 <b style="color:var(--danger)">' + book.length + '</b> 道错题待复习</p>' +
+    '<p style="color:var(--text-secondary);font-size:12px;margin-bottom:14px">做对后自动从错题本移除</p>' +
+  '</div><div class="answer-review">';
+
+  for(var i = 0; i < book.length; i++){
+    var item = book[i];
+    var correctAns;
+    if(item.type === 'multi'){
+      var ca = [];
+      for(var j = 0; j < item.answer.length; j++){ ca.push(labels[item.answer[j]]); }
+      correctAns = ca.join('、');
+    } else {
+      correctAns = item.answer >= 0 ? labels[item.answer] : String(item.answer);
+    }
+
+    html += '<div class="review-item wrong">' +
+      '<div class="ri-q">第' + (i+1) + '题' + (item.subject ? ' [' + item.subject + ']' : '') + ' ' + item.question + '</div>' +
+      '<div class="ri-a">✅ 正确答案：' + correctAns + '</div>';
+    if(item.explanation){
+      html += '<div class="ri-e">💡 ' + item.explanation + '</div>';
+    }
+    if(item.mockSet){
+      html += '<div style="font-size:11px;color:var(--text-secondary);margin-top:4px">来源：' + item.mockSet + '</div>';
+    }
+    html += '</div>';
+  }
+
+  html += '</div><div class="results-actions" style="margin-top:18px;padding-bottom:24px">' +
+    '<button class="primary" onclick="startWrongBookExam()">🧪 错题重练</button>' +
+    '<button class="danger-btn" onclick="clearWrongBook()">🗑️ 清空错题本</button>' +
+    '<button onclick="navigate(\'home\')">🏠 返回首页</button>' +
+  '</div></div>';
+
+  main.innerHTML = html;
+}
+
+// Start an exam with only wrong book questions
+function startWrongBookExam(){
+  var book = getWrongBook();
+  if(book.length === 0){
+    alert('错题本为空！');
+    return;
+  }
+
+  // Convert wrong book items to exam format
+  var questions = [];
+  for(var i = 0; i < book.length; i++){
+    var item = book[i];
+    questions.push({
+      question: item.question,
+      options: item.options,
+      answer: item.answer,
+      explanation: item.explanation,
+      type: item.type,
+      _wrongBookFp: item.fingerprint
+    });
+  }
+
+  // Create a single-section exam
+  var sections = [
+    {name: '错题重练', cls: 'english', timePerQ: 50, questions: questions}
+  ];
+
+  appState.exam = {
+    sections: sections,
+    sectionIndex: 0,
+    currentIndex: 0,
+    userAnswers: {},
+    completed: false,
+    timedOut: false,
+    timerInterval: null,
+    selectedOptions: null,
+    isWrongBookExam: true
+  };
+
+  navStack = [];
+  appState.screen = 'exam';
+  updateBackBtn();
+  renderExam();
+}
+
+function clearWrongBook(){
+  if(confirm('确定要清空错题本吗？此操作不可恢复！')){
+    saveWrongBook([]);
+    updateWrongBookHint();
+    alert('错题本已清空！');
+    navigate('home');
+  }
 }
 
 // ==================== 真题浏览 ====================
@@ -2158,6 +2404,172 @@ var MOCK13_MATH = [
   {question:'（多选）下列数中既是2的倍数又是3的倍数的是：',options:['A. 102','B. 345','C. 216','D. 111'],answer:[0,2],type:'multi'},
   {question:'浓度为20%盐水200g，加盐变25%，需加盐：',options:['A. 10g','B. 12g','C. 13.3g','D. 40g'],answer:2},
   {question:'99×101+1=______',options:['A. 10000','B. 9999','C. 10001','D. 9900'],answer:0}
+];
+
+// ==================== 2026年武外全英文预测考察模拟卷三套 ====================
+// 预测卷一 (SET 1): Chinese Culture & Wuhan Heritage
+// 预测卷二 (SET 2): Technology, Logic & Current Affairs
+// 预测卷三 (SET 3): 2026 Comprehensive Prediction Paper
+
+var MOCK14_CHINESE = [
+  {question: "Which of the following Chinese characters is an axis-symmetric figure", options: ["全", "面", "发", "展"], answer: 0, explanation: "'全' is symmetric along a vertical axis. A recurring question style from 2023-2025."},
+  {question: "The poem 'Fishing in Mist' (《渔歌子》) by Zhang Zhihe describes a fisherman in light wind and rain. What is the fisherman's facial expression", options: ["Relaxed", "Proud", "Unhappy", "Angry"], answer: 0, explanation: "The poem reflects a leisurely, carefree mood. 2025 original question style."},
+  {question: "In 'A Thousand Li of Rivers and Mountains' (千里江山图), which three colors are MAINLY used? (Select 3)", options: ["Red", "Blue", "Green", "Black"], answer: [1, 2, 3], type: 'multi', explanation: "The painting uses mineral blue, mineral green, and ink black. No red. 2025 original."},
+  {question: "Which of the following idioms is related to Wang Xizhi's calligraphy", options: ["Return home after getting fame", "Mencius's mother moved three times", "One arrow, two eagles", "Entering wood three fen deep (入木三分)"], answer: 3, explanation: "'入木三分' describes Wang Xizhi's powerful calligraphy. 2021 original style."},
+  {question: "Which poem indicates the season of autumn", options: ["'Boundless trees shed fallen leaves whispering down.'", "'The apricot rain dampens sleeves as if to moisten them.'", "'Suddenly, like a night of spring breeze.'", "'Tiny lotus buds just show their pointed tips.'"], answer: 0, explanation: "A describes falling leaves = autumn. B=spring rain, C=winter snow, D=summer lotus. 2025 original."},
+  {question: "Which of the following historical events did NOT occur in Hubei Province", options: ["Three Visits to the Thatched Cottage", "Beleaguered on All Sides (四面楚歌)", "High Mountains and Flowing Water", "Borrowing Arrows with Straw Boats"], answer: 1, explanation: "'四面楚歌' happened at Gaixia (Anhui). The others are in Hubei. 2025 original."},
+  {question: "In the story 'Borrowing Arrows with Straw Boats' (草船借箭), which statements are TRUE?① Zhuge Liang predicted the weather.② Zhou Yu had planned it carefully.③ Cao Cao didn't trust others easily.④ Lu Su lent Zhuge boats", options: ["①②", "②③", "①③", "③④"], answer: 2, explanation: "Zhuge predicted fog; Cao Cao was suspicious. Zhou Yu did NOT plan this. 2025 original."},
+  {question: "What do Wu Gang (吴刚) and Chang'e (嫦娥) have in common", options: ["Moon", "Sun", "Tree", "Rabbit"], answer: 0, explanation: "Both are figures in Chinese mythology related to the Moon. 2025 original."},
+  {question: "In 'On My Way to Sanqu' (三衢道中) by Zeng Ji, 'Stream past, ______ I go on a hilltrip throughout.' Which word fits best", options: ["however", "but", "then", "so"], answer: 2, explanation: "'小溪泛尽却山行' — '却' means 'then/again'. 2025 original."},
+  {question: "Which of the following is a traditional Wuhan breakfast snack", options: ["Tangyuan", "Hot-dry noodles (Re Gan Mian)", "Mian wo", "Xiaolongbao"], answer: 2, explanation: "Mian wo (面窝) is a unique Wuhan fried donut-like snack. 2025 original."},
+  {question: "Which expression has the same meaning as 'One arrow killed two eagles'", options: ["Kill two birds with one stone", "Two heads are better than one", "A bird in hand is worth two in the bush", "Rome wasn't built in a day"], answer: 0, explanation: "Both mean achieving two goals with one action. 2025 original."},
+  {question: "The 2026 Chinese Lunar New Year is the Year of the ______", options: ["Dragon", "Snake", "Horse", "Sheep"], answer: 2, explanation: "2026 is Bing-Wu (丙午), the Year of the Horse. Predicted 2026 zodiac question."},
+];
+
+var MOCK14_MATH = [
+  {question: "Define a new operation: a ※ b = a × b + a + b. What is 5 ※ (3 ※ 2)", options: ["47", "49", "51", "71"], answer: 3, explanation: "3 ※ 2 = 3×2 + 3 + 2 = 11; 5 ※ 11 = 5×11 + 5 + 11 = 71. New operation is a recurring high-frequency topic in WFLS exams."},
+  {question: "In a box, there are red, yellow, and blue balls. Except for 3 balls, all are red. Except for 4 balls, all are yellow. Except for 5 balls, all are blue. How many balls are there in total", options: ["5", "6", "7", "9"], answer: 1, explanation: "Total = (3+4+5) ÷ 2 = 6. Classic logic from 2022."},
+  {question: "A triangle has two sides of 5 cm and 7 cm. The third side is an integer. What is the MAXIMUM possible length of the third side", options: ["10", "11", "12", "13"], answer: 1, explanation: "Triangle inequality: third side < 5+7 = 12, so max = 11."},
+  {question: "A product's price increased by 20% in February, then decreased by 20% in April compared to February. Compared to the original price, the April price is", options: ["increased by 4%", "decreased by 4%", "unchanged", "decreased by 2%"], answer: 1, explanation: "Let original = 100. Feb = 120. Apr = 120×0.8 = 96. Down 4%. 2021 original style."},
+  {question: "Wuhan Metro Line X departs every 8 minutes. Xiaoming walks to the station at 60 m/min. The metro speed is 300 m/min. What is the distance between two adjacent metros", options: ["2000", "2400", "3000", "3600 meters"], answer: 1, explanation: "Distance = speed × interval = 300 × 8 = 2400 m. Wuhan metro context."},
+  {question: "A rectangular container is 30 cm long, 20 cm wide, and 15 cm high. Water depth is 8 cm. A 10 cm cube is placed inside. How much does the water level rise", options: ["1.0", "1.5", "2.0", "2.5 cm"], answer: 1, explanation: "Since the cube (10 cm) is taller than water depth (8 cm), it is not fully submerged. Original water volume = 30×20×8 = 4800. New base area = 600 - 100 = 500. New height = 4800 ÷ 500 = 9.6. Rise = 1.6 cm ≈ 1.5 cm (closest)."},
+  {question: "Find the pattern: 20, 25, 3, 1, 33, ?, 5, 4, 3, 8. What is '?'", options: ["10", "12.5", "15", "20"], answer: 1, explanation: "Top × bottom = 100 for each pair. 100 ÷ 8 = 12.5. 2021 original."},
+  {question: "A password rule: 7 ※ 4 ○ 2 = 280820, 3 ※ 8 ○ 1 = 240816. What is 5 ※ 3 ○ 4", options: ["151203", "202000", "150312", "201218"], answer: 0, explanation: "a×b, b×c, a×b - b×c. 5×3=15, 3×4=12, 15-12=03 → 151203. 2021 original."},
+  {question: "A cylinder container has two solid blocks inside. Water is poured at a constant rate. The height-time graph shows three stages. What does the second stage represent", options: ["Water filling the bottom gap", "Water rising above the small cylinder", "Water rising between the two blocks", "Water overflowing"], answer: 2, explanation: "Three stages: fill bottom → rise between blocks → fill above tall block. 2024 original style."},
+  {question: "The ratio of length : width : height of a cuboid is 3:2:1. Volume is 6000 cm³. If only the four side faces are wrapped (no top/bottom), what is the minimum paper area needed", options: ["1000", "1200", "1600", "2200 cm²"], answer: 0, explanation: "Dimensions: 30, 20, 10. Side area = (30×10 + 20×10) × 2 = 1000. 2021 original."},
+  {question: "A clock shows 8:30. What is the angle between the hour hand and minute hand", options: ["60°", "75°", "90°", "120°"], answer: 1, explanation: "Hour hand at 8.5 × 30 = 255°. Minute hand at 180°. Difference = 75°. 2021 original."},
+  {question: "Class 6(1) makes paper cranes. Each student folds 'a' cranes. If only girls do it, each girl folds 1.5a cranes. If only boys do it, how many more cranes does each boy fold", options: ["0.5a", "a", "2a", "2.5a"], answer: 2, explanation: "Let girls = 2, total = 3a, total students = 3, boys = 1. Boy folds 3a, extra = 2a. 2024 original."},
+];
+
+var MOCK14_ENGLISH = [
+  {question: "Which of the following is NOT good for your eyes", options: ["Looking at green plants after study", "Doing outdoor sports", "Doing eye exercises", "Watching TV closely"], answer: 3, explanation: "2024 original."},
+  {question: "The 2026 Winter Olympics will be held in Milan. Which country is it", options: ["France", "Italy", "Germany", "Switzerland"], answer: 1, explanation: "2026 Milan-Cortina Winter Olympics in Italy. Predicted 2026 current affairs."},
+  {question: "Which road sign is INCORRECT", options: ["Xudong St.", "Zhongshan Ave.", "Zhong South Rd. (for 中南路)", "Qiangwei Rd."], answer: 2, explanation: "'中南路' should be Zhongnan Rd. 2024 original."},
+  {question: "What does the yellow traffic light mean", options: ["Speed up", "Slow down and be ready to stop", "Pedestrians must cross", "All vehicles stop immediately"], answer: 1, explanation: "2025 original."},
+  {question: "Which of the following is a renewable energy source", options: ["Coal", "Oil", "Solar energy", "Natural gas"], answer: 2, explanation: "2025 original."},
+  {question: "If you want to use AI to help with homework, what should you NOT do", options: ["Check facts by yourself", "Copy everything without thinking", "Use it to find ideas", "Ask it to check grammar"], answer: 1, explanation: "2025 AI ethics style."},
+  {question: "Which instrument is played by blowing air through it", options: ["Guitar", "Drum", "Clarinet", "Violin"], answer: 2, explanation: "2025 original."},
+  {question: "Which animal lives in the forest, climbs trees, and uses spots to hide", options: ["Crocodile", "Panda", "Giraffe", "Leopard"], answer: 3, explanation: "Leopard fits all descriptions. 2025 original style (modified from monkey)."},
+  {question: "On Qixi Festival, people look at the sky to see Niulang and Zhinu meet on the ______", options: ["Magpie Bridge", "Sky Bridge", "Overpass", "Zhaozhou Bridge"], answer: 0, explanation: "2025 original."},
+  {question: "Which is beneficial to the environment", options: ["Destroying forests", "Emissions", "Water pollution", "Planting trees"], answer: 3, explanation: "2025 original style."},
+  {question: "Which sign remains the same after being flipped horizontally", options: ["60XHX60", "60XHX09", "60XHX06", "60XHX90"], answer: 0, explanation: "2025 original."},
+  {question: "If you face south, which direction is on your left", options: ["East", "West", "North", "South"], answer: 0, explanation: "2023 original."},
+  {question: "Which country hosted the 2024 Summer Olympics", options: ["China", "Korea", "France", "Japan"], answer: 2, explanation: "Paris 2024. 2025 original (note: corrected from 2025 answer error)."},
+  {question: "Which of the following plants grows underground", options: ["Potatoes", "Apples", "Green peppers", "Carrots"], answer: 0, explanation: "2025 original."},
+  {question: "What does 'multitasker' mean", options: ["Someone who does one task at a time", "Someone who does many tasks at the same time", "Someone who focuses on a single activity", "Someone who avoids working on multiple things"], answer: 1, explanation: "2025 original."},
+  {question: "We should not use a UAV (drone) to", options: ["Deliver goods to remote areas", "Monitor environmental changes", "Spy on someone's private property", "Inspect infrastructure"], answer: 2, explanation: "2025 original."},
+  {question: "What provides energy for the Shenzhou spacecraft", options: ["Solar energy", "Chemical energy", "Wind energy", "Battery"], answer: 0, explanation: "2025 original."},
+  {question: "Which is a safe place to swim", options: ["A pond", "A stream", "A river", "A guarded swimming pool"], answer: 3, explanation: "2025 original."},
+];
+
+var MOCK15_CHINESE = [
+  {question: "Which of the following poems describes the season of WINTER", options: ["'Lotus leaves reach the sky, lotus flowers glow in the sun.'", "'Suddenly like a spring breeze overnight, thousands of pear trees bloom.'", "'I stop the carriage to admire the maple forest at dusk; frost-bitten leaves are redder than spring flowers.'", "'Beyond the bamboo, a few peach blossoms; the duck knows first when the river water warms in spring.'"], answer: 1, explanation: "B uses pear blossoms as a metaphor for snow — winter scene. Predicted 2026 seasonal poetry question."},
+  {question: "In 'Journey to the West', Zhu Bajie uses the 'provocation method' to persuade Sun Wukong to save Master Tang. What does this show about Zhu Bajie", options: ["Clever", "Sly", "Lazy", "Loyal"], answer: 0, explanation: "He cleverly uses reverse psychology. 2024 original."},
+  {question: "Which of the following is the BEST summary of the chapter 'Zhu Bajie Provokes Wukong to Save the Master'", options: ["Zhu Bajie persuades Wukong to save the Master", "The monster insults Sun Wukong", "Sun Wukong goes to save the Master", "Zhu Bajie uses reverse psychology to make Wukong save the Master"], answer: 3, explanation: "2024 original style."},
+  {question: "Which of the following statements about 'the Five Grains' (五谷) is CORRECT", options: ["They are rice, wheat, millet, sorghum, and beans", "'Ji' (稷) is pronounced 'shè'", "'Shu' (菽) refers to soybeans", "All of the above are wrong"], answer: 2, explanation: "'Ji' is pronounced 'jì'. 'Shu' (菽) means beans/legumes. 2024 original."},
+  {question: "Which poem is NOT related to Wuhan's Yellow Crane Tower", options: ["'The immortal has ridden the yellow crane away; only the Yellow Crane Tower remains here.'", "'In the Yellow Crane Tower, a jade flute is played; plum flowers fall in the Jiangcheng in May.'", "'The clear river shows the trees of Hanyang; fragrant grass covers Parrot Island.'", "'Worry before the world worries; enjoy after the world enjoys.'"], answer: 3, explanation: "D is from 'Yueyang Tower Inscription' (Hunan). 2024 original."},
+  {question: "Which of the following festivals is described by the poem: 'From afar, I know my brothers climb the mountain; one less person wears the dogwood'", options: ["Spring Festival", "Qixi Festival", "Mid-Autumn Festival", "Double Ninth Festival"], answer: 3, explanation: "Climbing mountains and wearing dogwood are customs of the Double Ninth (Chongyang) Festival. 2024 original."},
+  {question: "In the sentence 'Grandma, whether white hair or black hair, it all becomes black when night falls', what rhetorical device is used", options: ["Metaphor", "Pun", "Exaggeration", "Personification"], answer: 1, explanation: "'Black hair' has a double meaning — hair color and darkness of night. A clever pun to comfort grandma. 2021 original style."},
+  {question: "Which of the following is a proper theme for the essay 'Fun Things in Childhood'", options: ["Failing an exam", "Playing on the beach with a friend all afternoon", "Accidentally drinking ink", "Building a house for insects"], answer: 0, explanation: "'Failing an exam' is NOT fun. 2022 original."},
+  {question: "Which of the following Chinese characters has the SAME third stroke as '罗' (luo)", options: ["列", "方", "草", "华"], answer: 0, explanation: "Stroke order analysis. 2023 original."},
+  {question: "Which of the following is a traditional Wuhan snack with the CORRECT name", options: ["Ma Yuanzi", "Hu Mi Jiu (Rice Wine Soup)", "Nuo Mi Ji (Glutinous Rice Chicken)", "All of the above are correct"], answer: 3, explanation: "2023 original style."},
+  {question: "In 'The Little Prince', which characteristic of the Little Prince is NOT shown in the text", options: ["Persistent", "Sincere", "Patient", "Responsible"], answer: 3, explanation: "2023 original."},
+  {question: "Which idiom means 'environment is important for children's growth'", options: ["Meng Mu San Qian (Mencius's mother moved three times)", "Gao Shan Liu Shui (High mountains and flowing water)", "Guan Ning Ge Xi (Guan宁 cut the mat)", "Guan Bao Zhi Jiao (Friendship of Guan and Bao)"], answer: 0, explanation: "2024 original."},
+  {question: "The 2026 Winter Olympics mascot is 'Tina and Milo'. Which country are they from", options: ["France", "Italy", "Germany", "Switzerland"], answer: 1, explanation: "2026 Milan-Cortina is in Italy. Predicted 2026 current affairs."},
+  {question: "Which of the following is suitable for the 'Alumni Stories' section of the WFLS 60th Anniversary book", options: ["School teaching achievements", "School educational philosophy", "Qu Fang (WFLS graduate) founded Xiaohongshu (RED)", "School psychological forum"], answer: 2, explanation: "2024 original."},
+];
+
+var MOCK15_MATH = [
+  {question: "Huanhuan and Lele took an exam. Huanhuan got 1/4 of the questions wrong. Lele got 5 questions wrong. Both got 1/6 of the total questions wrong together. Both got more than half right. How many questions did BOTH get right", options: ["7", "11", "15", "17"], answer: 3, explanation: "Total is LCM of 4 and 6 = 12, 24, 36... Try 24: Huanhuan wrong = 6, both wrong = 4. Total wrong = 6+5-4 = 7. Both right = 24-7 = 17 (>12). 2023 original."},
+  {question: "Using digits 2, 3, 5, form all possible three-digit numbers and add them up. What is the sum", options: ["2220", "2340", "2400", "2150"], answer: 0, explanation: "Each digit appears twice in each place. Sum = 222×(2+3+5) = 2220. 2023 original."},
+  {question: "A tram departs every 12 minutes. Pedestrian A is overtaken every 18 minutes; Pedestrian B is overtaken every 24 minutes. What is the ratio of A's speed to B's speed", options: ["3:4", "4:5", "5:7", "2:3"], answer: 3, explanation: "Let distance between trams = 72. Tram speed = 72÷12 = 6. V_tram - V_A = 72÷18 = 4, so V_A = 2. V_tram - V_B = 72÷24 = 3, so V_B = 3. Ratio = 2:3. 2023 original."},
+  {question: "A number leaves remainder 1 when divided by 3, remainder 2 when divided by 5, and remainder 3 when divided by 7. What is the smallest such number", options: ["52", "53", "54", "55"], answer: 0, explanation: "Numbers ≡3 mod 7: 10,17,24,31,38,45,52. Check: 52÷3=17R1, 52÷5=10R2. Predicted 2026 Chinese Remainder Theorem."},
+  {question: "A rectangular box has volume 6000 cm³. The ratio of length:width:height = 3:2:1. What is the surface area of the four side faces only", options: ["1000", "1200", "1600", "2200 cm²"], answer: 0, explanation: "Dimensions: 30, 20, 10. Side area = (30×10 + 20×10)×2 = 1000. 2021 original."},
+  {question: "A supermarket sells hand soap: 14 yuan per bottle, or 20 yuan for a bag of 2 bottles. Xiaoming spent exactly 108 yuan. How many bottles did he buy in total", options: ["8", "9", "10", "12"], answer: 2, explanation: "14x + 10y = 108. By units digit: x=2, y=8. Total = 10. 2021 original."},
+  {question: "A clock shows 3:30. What is the angle between the hour hand and minute hand", options: ["60°", "75°", "90°", "105°"], answer: 1, explanation: "Hour hand at 3.5×30 = 105°. Minute hand at 180°. Difference = 75°. 2021 original."},
+  {question: "A triangle has two sides of 4 cm and 6 cm. The height on one side is 5 cm. What is the area of the triangle", options: ["10", "15", "10 and 15", "20 and 30"], answer: 0, explanation: "By triangle inequality, the 5 cm height must correspond to the 4 cm base. Area = 4×5÷2 = 10. 2021 original."},
+  {question: "The 'East Lake Eye' Ferris wheel in Wuhan has 28 cabins. It rotates one full circle every 13 min 14 sec. If cabin 26 is at the highest point at 10:00, approximately how many seconds until cabin 5 reaches the highest point", options: ["197", "199", "201", "None of the above"], answer: 1, explanation: "13 min 14 sec = 794 sec. From 26→28→5 is 7 intervals = 1/4 of 28. 794÷4 ≈ 198.5 ≈ 199 sec. 2022 original."},
+  {question: "A product costs 3 yuan by bus card (10% discount) or 3-1.99=1.01 yuan with a coupon (no discount). Which is cheaper", options: ["Bus card", "Coupon", "Same", "Cannot tell"], answer: 1, explanation: "Coupon: 3-1.99 = 1.01. Bus card: 2.7. 1.01 < 2.7. 2021 original."},
+  {question: "If 25% of x equals 40% of y, then x is ________ of y", options: ["62.5%", "85%", "120%", "160%"], answer: 3, explanation: "0.25x = 0.40y → x = 1.6y = 160%y. 2023 original."},
+  {question: "A squirrel starts from '△' and can only go straight or turn right to reach the pine cone at '★'. How many turns does it need to make", options: ["2", "3", "4", "5"], answer: 2, explanation: "2025 original maze logic."},
+];
+
+var MOCK15_ENGLISH = [
+  {question: "Which of the following is the name of China's first independent Mars exploration mission", options: ["Chang'e", "Tianwen-1", "Shenzhou", "Tiangong"], answer: 1, explanation: "2021 original."},
+  {question: "The word 'taikonaut' refers to an astronaut from ________", options: ["Canada", "Australia", "America", "China"], answer: 3, explanation: "2021 original."},
+  {question: "Which city is on the south of Wuhan", options: ["Xi'an", "Beijing", "Changsha", "Tianjin"], answer: 2, explanation: "2021 original."},
+  {question: "Which city is the world's first 'Double Olympic City'", options: ["Tokyo", "Rio", "Beijing", "London"], answer: 2, explanation: "2022 original."},
+  {question: "Which of the following is NOT information from the 'Double-reduction' policy", options: ["Go to school on time", "Get A+ on Chinese, Math and English", "Do sports every day", "Learn art and music at school"], answer: 1, explanation: "2022 original."},
+  {question: "Which of the following relics was discovered in China", options: ["Sanxingdui mask", "Maya mask", "Egyptian pharaoh mask", "African mask"], answer: 0, explanation: "2022 original."},
+  {question: "Which animal is imitated in this Wu Qin Xi movement? (Picture: arms spread like wings)", options: ["Monkey", "Chicken", "Tiger", "Crane"], answer: 3, explanation: "2022 original."},
+  {question: "Which of the following is safe to do while swimming? (Select all that apply)", options: ["Swim on an empty stomach", "Swim with family and coach", "Swim in any river", "Cry loudly for help when someone falls into water"], answer: [1, 3], type: 'multi', explanation: "2021 original."},
+  {question: "Which of the following is Beethoven's musical style", options: ["Pop music", "Classical music", "Hip-hop", "Blues"], answer: 1, explanation: "2021 original."},
+  {question: "If you don't study hard, you will have ________'s chance", options: ["cat's", "dog's", "bird's", "pig's"], answer: 1, explanation: "'Dog's chance' means very little chance. 2021 original."},
+  {question: "Which of the following is a traditional Chinese furniture used to block wind", options: ["Chair", "Screen", "Bed", "Cabinet"], answer: 1, explanation: "2024 original."},
+  {question: "Which of the following animals is now NOT endangered anymore", options: ["Snow leopard", "Polar bear", "Giant panda", "Yangtze alligator"], answer: 2, explanation: "2024 original. Giant panda was downgraded to 'vulnerable' in 2016."},
+  {question: "Where can you often see a '30% OFF' sign", options: ["In a shopping mall", "In a library", "In a hospital", "In a school"], answer: 0, explanation: "2024 original."},
+  {question: "If you want to buy a toy, what should you do", options: ["Choose the most expensive one", "Borrow money from friends", "Buy it after comparison", "Steal it"], answer: 2, explanation: "2025 original."},
+  {question: "Which of the following plants grows underground", options: ["Potatoes", "Apples", "Green peppers", "Carrots"], answer: 0, explanation: "2025 original."},
+  {question: "What does the yellow light in traffic lights indicate", options: ["Speed up", "Slow down and be ready to stop", "Pedestrians must start crossing", "All vehicles should stop right away"], answer: 1, explanation: "2025 original."},
+  {question: "Which instrument is played by blowing", options: ["Guitar", "Drum", "Clarinet", "Violin"], answer: 2, explanation: "2025 original."},
+  {question: "If you face south, which direction is on your left", options: ["East", "West", "North", "South"], answer: 0, explanation: "2023 original."},
+];
+
+var MOCK16_CHINESE = [
+  {question: "The 2026 Winter Olympics will be held in Milan and Cortina d'Ampezzo. Which of the following is a famous Italian landmark", options: ["The Eiffel Tower", "The Colosseum", "Big Ben", "The Sydney Opera House"], answer: 1, explanation: "The Colosseum is in Rome, Italy. Predicted 2026 Winter Olympics geography question."},
+  {question: "Which of the following poems is written by Li Bai", options: ["'The moonlight shines before my bed; I suspect it is frost on the ground.'", "'The spring river water is warm; the duck knows first.'", "'I stop to admire the maple forest at dusk.'", "'The thatched roof is low and small; the grass on the stream is green.'"], answer: 0, explanation: "A is Li Bai's 'Quiet Night Thought'. B is Su Shi, C is Du Mu, D is Xin Qiji. Predicted 2026 poetry identification."},
+  {question: "Which of the following is a correct description of the 'Year of the Horse' (2026)", options: ["It is the first animal in the Chinese zodiac.", "The horse symbolizes speed, strength and perseverance.", "People born in the Year of the Horse are believed to be lazy.", "The horse is not one of the 12 zodiac animals."], answer: 1, explanation: "Horse is the 7th zodiac animal, symbolizing energy and success. Predicted 2026 zodiac culture."},
+  {question: "In 'The Little Prince', what does the rose represent", options: ["A beautiful but empty flower", "The prince's unique love and responsibility", "A common flower in the garden", "A dangerous plant"], answer: 1, explanation: "The rose symbolizes the prince's unique bond and the responsibility that comes with love. 2023 original style."},
+  {question: "Which of the following is a proper way to protect our hearing", options: ["Use headphones for more than 3 hours continuously", "Keep volume high for better sound quality", "Limit daily use to less than 2 hours", "Share earbuds with friends"], answer: 2, explanation: "2025 original 'Usage Duration / Hearing Risk' table question."},
+  {question: "Which of the following is a traditional Chinese festival food", options: ["Turkey (Christmas)", "Zongzi (Dragon Boat Festival)", "Pizza (Italy)", "Sushi (Japan)"], answer: 1, explanation: "Zongzi is eaten during the Dragon Boat Festival. Predicted 2026 festival food question."},
+  {question: "In the sentence 'Books are the ladder of human progress', what rhetorical device is used", options: ["Metaphor", "Personification", "Exaggeration", "Rhetorical question"], answer: 0, explanation: "Books are directly compared to a ladder. Predicted 2026 rhetoric question."},
+  {question: "Which of the following is a Wuhan Metro line color", options: ["Fangcao Green (Line 4)", "Shouyi Red (Line 5)", "Yunhe Yellow (Yellow Crane Tower color)", "All of the above"], answer: 3, explanation: "2022 original style. Line 4 is green, Line 5 is red. 'Yunhe' refers to Yellow Crane."},
+  {question: "Which of the following is a correct English translation of a Chinese idiom", options: ["入木三分 — 'Enter wood three fen' (describe penetrating analysis)", "孟母三迁 — 'Mencius's mother moved three times' (environment matters)", "草船借箭 — 'Borrow arrows with straw boats' (use wisdom to get resources)", "All of the above"], answer: 3, explanation: "All translations are literal but convey the core meaning. Predicted 2026 idiom translation."},
+  {question: "What is the main message of the story 'Smile and face life with positivity'", options: ["Always take care of your health", "Basketball is fun", "Smile and face life with positivity", "Playing basketball can be dangerous"], answer: 2, explanation: "2025 original."},
+  {question: "Which of the following is a renewable energy source used by the Shenzhou spacecraft", options: ["Coal", "Solar energy", "Oil", "Nuclear power"], answer: 1, explanation: "2025 original."},
+  {question: "In the poem 'Quiet Night Thought' (静夜思), what does the poet see before the bed", options: ["Frost", "Moonlight", "Snow", "Flowers"], answer: 1, explanation: "'床前明月光' — Moonlight shines before the bed. Predicted 2026 classical poetry comprehension."},
+  {question: "Which of the following is NOT a traditional Chinese musical instrument", options: ["Guzheng (zither)", "Erhu (fiddle)", "Piano", "Pipa (lute)"], answer: 2, explanation: "Piano is a Western instrument. Predicted 2026 music culture question."},
+  {question: "Which of the following is a correct description of AI (Artificial Intelligence)", options: ["AI can completely replace human teachers", "AI can help doctors analyze medical images", "AI can write novels without any human input", "AI cannot be used in education"], answer: 1, explanation: "2025 AI application style. AI assists but does not fully replace humans."},
+];
+
+var MOCK16_MATH = [
+  {question: "Linda bought some watermelons. The three lightest ones account for 21% of total weight. The two heaviest ones account for 48%. How many watermelons did she buy? (Select all possible)", options: ["6", "7", "8", "10", "11"], answer: [1, 2], type: 'multi', explanation: "2025 original. Middle portion = 31%. Average weight analysis shows 7, 8, or 9 possible."},
+  {question: "In the figure, two right triangles share a base of 8 cm. Heights are 3 cm and 6 cm. What is the area of the overlapping shaded region", options: ["16", "18", "20", "22 cm²"], answer: 1, explanation: "2025 original. Using similar triangles or area ratios, shaded area = 18."},
+  {question: "Three people discuss their houses. Only the first person is lying. Person 1: 'My roof is not red.' Person 2: 'There are no trees in front of my house.' Person 3: 'There is no river near my house.' Which picture shows Person 3's house", options: ["Red roof, no trees, no river", "Red roof, trees, no river", "No red roof, no trees, river", "No red roof, trees, river"], answer: 1, explanation: "2025 original logic puzzle."},
+  {question: "According to road signs, Rabbit's house is 4 km from Fox's house via Route A, and 13 km via Route B. Which sign is INCORRECT", options: ["4 + 13 = 17 km", "5 + 12 = 17 km", "5 + 11 = 16 km ≠ 17", "6 + 11 = 17 km"], answer: 2, explanation: "2025 original. 5+11=16≠17, so C is wrong."},
+  {question: "Xiaoming, Xiaofang, and Xiaoqiang want to join robotics, soccer, and orchestra clubs. Xiaoming doesn't want robotics. Xiaofang doesn't want music. Xiaoqiang is willing to join any. Each joins only one club. How many possible arrangements", options: ["3", "4", "5", "6"], answer: 0, explanation: "2025 original. Enumeration: 3 valid permutations."},
+  {question: "The Wuhan Optics Valley Skyrail has 10 stations. A person travels from 'Gaoxin 4th Road' to 'Longquan Mountain' and goes back and forth continuously. After 52 stations, where does he get off", options: ["Jiufengshan", "Gaoxin Boulevard", "Longquan Mountain", "Gaoxin 4th Road", "Zongbaoqu", "Gaoxin 2nd Road"], answer: 2, explanation: "2025 original. 52÷10 = 5 remainder 2. After 5 full cycles, 2 more stations → Longquan Mountain."},
+  {question: "A squirrel starts from '△' and can only go straight or turn right to reach '★'. How many turns are needed", options: ["2", "3", "4", "5"], answer: 2, explanation: "2025 original maze problem."},
+  {question: "In a base-5 system, a number is written as '234'. What is its value in base-10", options: ["58", "60", "69", "234"], answer: 2, explanation: "2×25 + 3×5 + 4 = 50+15+4 = 69. 2021 original."},
+  {question: "Which of the following is closest to a 12-year-old's age", options: ["6000 days", "600 weeks", "60 months", "600 hours"], answer: 1, explanation: "600 weeks ≈ 4200 days ≈ 11.5 years. 2021 original."},
+  {question: "A cylinder container has a small cylinder and a rectangular block inside. Water is poured at constant speed. The height-time graph has three stages. What is the volume of the small cylinder", options: ["7.5", "15", "20", "25", "30 cm³"], answer: 2, explanation: "2024 original. Using the slope changes in the graph to calculate volumes."},
+  {question: "Two identical right triangles (60° angle) are put together. Which shape CANNOT be formed", options: ["Isosceles triangle", "Parallelogram", "Rectangle", "Square", "Equilateral triangle"], answer: 3, explanation: "2024 original. Two 60° right triangles cannot form a square."},
+  {question: "A master and an apprentice paint walls of the same area. When the master finishes, the apprentice still has 30 m² left. When the apprentice finishes, the master has painted 50 m² of another wall. What is the wall area", options: ["60", "75", "90", "100 m²"], answer: 1, explanation: "2024 original. Efficiency ratio 5:3, area = 75 m²."},
+  {question: "A bicycle has front gear 24 teeth, rear gear 48 teeth, wheel radius 0.4 m. To travel 6 km, how many pedal rotations 'n' are needed? Which formula is correct", options: ["(24/48)n × 2π×0.4 = 6000", "(48/24)n × 2π×0.4 = 6000", "(24n/48) × 2π×0.4 = 6000", "(48n/24) × 2π×0.4 = 6000"], answer: 2, explanation: "2024 original. Wheel turns 24/48 per pedal. Distance = n × (24/48) × circumference."},
+  {question: "Wuhan has about 13 million people. If each person saves 1 drop of water per day, and 20 drops ≈ 1 mL, how many liters are saved in one day", options: ["6.5", "65", "650", "6500 liters"], answer: 2, explanation: "2024 original. 13,000,000 ÷ 20 = 650,000 mL = 650 L."},
+];
+
+var MOCK16_ENGLISH = [
+  {question: "Which of the following is good for your eyes", options: ["Reading in dim light", "Looking at green plants after reading", "Playing mobile games for hours", "Rubbing eyes with dirty hands"], answer: 1, explanation: "2024 original."},
+  {question: "Which of the following is a traditional Chinese furniture used to block wind", options: ["Chair", "Screen", "Bed", "Cabinet"], answer: 1, explanation: "2024 original."},
+  {question: "If you want to visit a butterfly exhibition with your 10-year-old daughter, and tickets are $20 for adults (children under 12 free), how much do you pay", options: ["$20", "$35", "$40", "$45"], answer: 0, explanation: "2022 original."},
+  {question: "Which of the following festivals is described by: 'People throw water at each other to wash away bad luck'", options: ["Spring Festival", "Songkran Festival", "Mid-Autumn Festival", "Dragon Boat Festival"], answer: 1, explanation: "2022 original."},
+  {question: "Which of the following is NOT a safe place to swim", options: ["A small pond", "A long river", "A big lake", "A guarded pool"], answer: 0, explanation: "2024 original."},
+  {question: "Which of the following is a correct description of the spacesuit", options: ["Useful", "Expensive", "Comfortable", "Broken"], answer: 0, explanation: "2025 original."},
+  {question: "What is the main energy source of the Shenzhou spacecraft", options: ["Solar energy", "Chemical energy", "Wind energy", "Battery energy"], answer: 0, explanation: "2025 original."},
+  {question: "Which of the following is a traditional symbol of the Qixi Festival", options: ["Flower", "Mandarin duck", "The Silk Road", "Ancient post station"], answer: 1, explanation: "2025 original. Mandarin ducks symbolize love."},
+  {question: "Which of the following historical events did NOT occur in Hubei Province", options: ["Three Visits to the Thatched Cottage", "Beleaguered on All Sides", "High Mountains and Flowing Water", "Borrowing Arrows with Straw Boats"], answer: 1, explanation: "2025 original. '四面楚歌' happened in Anhui."},
+  {question: "Which expression has the same meaning as 'One arrow killed two eagles'", options: ["Kill two birds with one stone", "Two heads are better than one", "A bird in hand is worth two in the bush", "Rome wasn't built in a day"], answer: 0, explanation: "2025 original."},
+  {question: "Which of the following is a Wuhan specialty doll", options: ["Bing Dwen Dwen", "Cai Xiao Niao", "Hello Kitty", "Mickey Mouse"], answer: 1, explanation: "2025 original. '菜小鸟' is a Wuhan specialty."},
+  {question: "If you face south, which direction is on your left", options: ["East", "West", "North", "South"], answer: 0, explanation: "2023 original."},
+  {question: "Which of the following is a traditional Chinese musical instrument played by blowing", options: ["Guitar", "Drum", "Clarinet", "Violin"], answer: 2, explanation: "2025 original. Clarinet (单簧管) is blown."},
+  {question: "What does 'multitasker' mean", options: ["Someone who does one task at a time", "Someone who does many tasks at the same time", "Someone who focuses on a single activity", "Someone who avoids working on multiple things"], answer: 1, explanation: "2025 original."},
+  {question: "We should not use a UAV (drone) to", options: ["Deliver goods to remote areas", "Monitor environmental changes", "Spy on someone's private property", "Inspect infrastructure"], answer: 2, explanation: "2025 original."},
+  {question: "Which of the following is beneficial to the environment", options: ["Destroying forests", "Emissions", "Water pollution", "Planting trees"], answer: 3, explanation: "2025 original."},
+  {question: "Which of the following grows underground", options: ["Potatoes", "Apples", "Green peppers", "Carrots"], answer: 0, explanation: "2025 original. Potatoes grow underground."},
+  {question: "What does the yellow traffic light indicate", options: ["Speed up", "Slow down and be ready to stop", "Pedestrians must start crossing", "All vehicles should stop right away"], answer: 1, explanation: "2025 original."},
+  {question: "Which country hosted the 2024 Summer Olympics", options: ["China", "Korea", "France", "Japan"], answer: 2, explanation: "Paris 2024. Corrected from 2025 original error."},
+  {question: "Which of the following is a safe place to swim", options: ["A pond", "A stream", "A river", "A swimming pool with lifeguards"], answer: 3, explanation: "2025 original."},
 ];
 
 var PAST_PAPERS = [
